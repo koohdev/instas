@@ -31,7 +31,7 @@ export default async function RenderPage({ searchParams }: PageProps) {
   let params: CompositeParams | null = null;
 
   if (id) {
-    params = getRenderData(id) as CompositeParams | null;
+    params = await getRenderData(id) as CompositeParams | null;
   } else if (data) {
     try {
       params = JSON.parse(decodeURIComponent(data));
