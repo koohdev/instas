@@ -26,6 +26,10 @@ import {
   RotateCcw,
   Eye,
   Sliders,
+  Images,
+  CheckCircle2,
+  Download,
+  FolderOpen,
 } from "lucide-react";
 import { BackgroundSelectorModal } from "./background-selector-modal";
 import { FontSelectorModal } from "./font-selector-modal";
@@ -51,7 +55,12 @@ export function CanvasFlowEditor() {
   // Modal dialog states inside canvas
   const [isBgModalOpen, setIsBgModalOpen] = useState(false);
   const [isFontModalOpen, setIsFontModalOpen] = useState(false);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+
+  // Derive active template from store — keeps canvas in sync with Form View
+  const activeTemplateId = (store.settings as { activeTemplateId?: string }).activeTemplateId ?? "";
+  const activeTemplateName = store.templates.find((t) => t.id === activeTemplateId)?.name ?? "";
+
+  const [hoveredSlide, setHoveredSlide] = useState<{ src: string; index: number; label: string } | null>(null);
 
   // Balanced 5-Column Spacious Layout with Live Preview Node embedded inside
   const initialNodes: Record<string, NodePosition> = {
@@ -62,6 +71,7 @@ export function CanvasFlowEditor() {
     branding: { x: 720, y: 350 },
     generator: { x: 1060, y: 180 },
     preview: { x: 1440, y: 40 },
+    outputs: { x: 1440, y: 820 },
   };
 
   const [nodes, setNodes] = useState<Record<string, NodePosition>>(initialNodes);
@@ -141,21 +151,18 @@ export function CanvasFlowEditor() {
     setZoom(1);
   };
 
-  // Preset apply helper
+  // Preset apply helper — writes directly to store, Form View reads same store
   const handleSelectTemplate = (templateId: string | null) => {
     if (!templateId) return;
     const found = store.templates.find((t) => t.id === templateId);
-    if (found) {
-      store.applyTemplate(found);
-      setSelectedTemplateId(templateId);
-    }
+    if (found) store.applyTemplate(found);
   };
 
   // Port position calculation for orthogonal lines
   const getNodePortPos = (nodeKey: string, isOutput: boolean) => {
     const pos = nodes[nodeKey] || { x: 0, y: 0 };
-    const width = nodeKey === "preview" ? 460 : nodeKey === "generator" ? 320 : 300;
-    const height = nodeKey === "preview" ? 580 : 240;
+    const width = nodeKey === "preview" ? 460 : nodeKey === "generator" ? 320 : nodeKey === "outputs" ? 480 : 300;
+    const height = nodeKey === "preview" ? 680 : nodeKey === "outputs" ? 360 : 240;
     return {
       x: pos.x + (isOutput ? width : 0),
       y: pos.y + height / 2,
@@ -237,6 +244,7 @@ export function CanvasFlowEditor() {
             {renderOrthogonalConnection("typography", "generator")}
             {renderOrthogonalConnection("branding", "generator")}
             {renderOrthogonalConnection("generator", "preview")}
+            {store.generationResult && renderOrthogonalConnection("preview", "outputs")}
           </svg>
 
           {/* ============================================================ */}
@@ -300,11 +308,13 @@ export function CanvasFlowEditor() {
                   <div className="grid gap-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground">Select Preset Template</Label>
                     <Select
-                      value={selectedTemplateId}
+                      value={activeTemplateId}
                       onValueChange={handleSelectTemplate}
                     >
                       <SelectTrigger className="h-8 text-xs bg-muted/20 border-border">
-                        <SelectValue placeholder="Choose template..." />
+                        <SelectValue placeholder="Choose template...">
+                          {activeTemplateName || "Choose template..."}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {store.templates.map((t) => (
@@ -315,9 +325,23 @@ export function CanvasFlowEditor() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="p-2 rounded-lg bg-muted/20 border border-border/40 text-[11px] flex items-center justify-between">
-                    <span className="text-muted-foreground">Active Style:</span>
-                    <span className="font-bold text-foreground capitalize">{store.settings.coverStyle}</span>
+                  <div className="grid gap-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground">Cover Style</Label>
+                    <div className="grid grid-cols-3 gap-1">
+                      {(["minimal", "bold", "modern"] as const).map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => store.updateSetting("coverStyle", s)}
+                          className={`text-[10px] font-bold capitalize px-2 py-1.5 rounded-md border transition-all cursor-pointer ${
+                            store.settings.coverStyle === s
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "border-border text-muted-foreground hover:text-foreground hover:border-primary/40 bg-muted/20"
+                          }`}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </FramePanel>
@@ -547,6 +571,118 @@ export function CanvasFlowEditor() {
               </FramePanel>
             </Frame>
           </div>
+
+          {/* ============================================================ */}
+          {/* NODE 8: GENERATED OUTPUT RESULTS (appears on success) */}
+          {/* ============================================================ */}
+          {store.generationResult && (
+            <div
+              className="absolute w-[480px] z-10 shadow-2xl"
+              style={{ left: `${nodes.outputs?.x ?? 1060}px`, top: `${nodes.outputs?.y ?? 520}px` }}
+            >
+              <Frame variant="default" spacing="default" className="border-2 border-emerald-500/60 ring-4 ring-emerald-500/10 bg-card">
+                <FramePanel className="p-0 overflow-hidden">
+                  <div
+                    onMouseDown={(e) => handleNodeHeaderMouseDown("outputs", e)}
+                    className="flex items-center justify-between p-3 bg-emerald-500/10 border-b border-emerald-500/30 cursor-move"
+                  >
+                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
+                      <CheckCircle2 className="w-4 h-4" /> 8. Generated Output Results
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-emerald-500 text-white font-bold text-[10px]">
+                        {store.generationResult.slides.length} Slides
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="p-3.5 flex flex-col gap-3">
+                    {/* Output folder info */}
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-muted/20 border border-border/40">
+                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                        <FolderOpen className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span className="font-mono text-foreground truncate max-w-[240px]">
+                          {store.generationResult.outputDir.split(/[\/\\]/).slice(-2).join("/")}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => window.location.href = `/api/outputs/download?folder=${encodeURIComponent(store.generationResult!.outputDir.split(/[\/\\]/).pop() || "")}`}
+                        className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 hover:text-emerald-300 cursor-pointer"
+                      >
+                        <Download className="w-3 h-3" /> ZIP
+                      </button>
+                    </div>
+                    {/* Slide thumbnails grid */}
+                    <div className="relative grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+                      {store.generationResult.slides
+                        .filter((s) => !s.error)
+                        .map((slide, i) => {
+                          const folderName = store.generationResult!.outputDir.split(/[\/\\]/).pop() || "";
+                          const src = `/api/outputs/image?folder=${encodeURIComponent(folderName)}&file=${encodeURIComponent(slide.filename)}`;
+                          return (
+                            <div
+                              key={i}
+                              className="relative aspect-square rounded-lg overflow-visible border border-border/60 bg-muted/40 group cursor-pointer"
+                              onMouseEnter={() => setHoveredSlide({ src, index: i, label: slide.filename })}
+                              onMouseLeave={() => setHoveredSlide(null)}
+                            >
+                              <img
+                                src={src}
+                                alt={slide.filename}
+                                className="w-full h-full object-cover rounded-lg transition-transform group-hover:scale-105 group-hover:border-primary/60"
+                                loading="lazy"
+                              />
+                              {/* Slide number badge */}
+                              <div className="absolute bottom-0.5 right-0.5 bg-black/70 text-white text-[8px] font-bold px-1 rounded">
+                                {i + 1}
+                              </div>
+                              {/* Hover popup preview – rendered inside node, pops upward */}
+                              {hoveredSlide?.index === i && (
+                                <div
+                                  className="absolute z-[200] bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 pointer-events-none"
+                                  style={{ width: 180 }}
+                                >
+                                  <div className="rounded-xl overflow-hidden border-2 border-primary/60 shadow-2xl ring-4 ring-primary/20 bg-card">
+                                    <img
+                                      src={hoveredSlide.src}
+                                      alt={hoveredSlide.label}
+                                      className="w-full h-auto object-contain"
+                                    />
+                                    <div className="px-2 py-1 text-[9px] font-mono text-muted-foreground truncate bg-muted/60">
+                                      {hoveredSlide.label}
+                                    </div>
+                                  </div>
+                                  {/* downward caret */}
+                                  <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-card border-r border-b border-primary/40" />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                    {/* Action buttons */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => window.location.href = "/outputs"}
+                        className="flex-1 text-xs h-8 gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold cursor-pointer"
+                      >
+                        <Images className="w-3.5 h-3.5" /> View in Gallery
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => store.resetGeneration()}
+                        className="text-xs h-8 gap-1 text-muted-foreground cursor-pointer"
+                      >
+                        <RotateCcw className="w-3 h-3" /> Reset
+                      </Button>
+                    </div>
+                  </div>
+                </FramePanel>
+              </Frame>
+            </div>
+          )}
 
         </div>
       </div>
