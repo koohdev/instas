@@ -39,9 +39,10 @@ export function AppShell({ activeRoute }: AppShellProps) {
   const [isPresetDialogOpen, setIsPresetDialogOpen] = useState(false);
   const [studioViewMode, setStudioViewMode] = useState<"form" | "canvas">("form");
 
+  const fetchData = store.fetchData;
   useEffect(() => {
-    store.fetchData();
-  }, []);
+    fetchData();
+  }, [fetchData]);
 
   const currentTab = activeRoute || (
     pathname === "/outputs"
@@ -57,11 +58,12 @@ export function AppShell({ activeRoute }: AppShellProps) {
       : "studio"
   );
 
+  const setActiveTab = store.setActiveTab;
   useEffect(() => {
     if (store.activeTab !== currentTab) {
-      store.setActiveTab(currentTab);
+      setActiveTab(currentTab);
     }
-  }, [currentTab]);
+  }, [currentTab, store.activeTab, setActiveTab]);
 
   const handleNavigateTab = (tab: string) => {
     store.setActiveTab(tab);

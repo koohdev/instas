@@ -224,7 +224,7 @@ export function CanvasFlowEditor() {
       {/* MAIN HIGH-PERFORMANCE CANVAS VIEWPORT */}
       <div
         ref={containerRef}
-        className="w-full h-full cursor-grab active:cursor-grabbing relative overflow-hidden bg-[radial-gradient(var(--border)_1px,transparent_1px)] [background-size:24px_24px]"
+        className="w-full h-full cursor-grab active:cursor-grabbing relative overflow-hidden bg-[radial-gradient(circle,hsl(var(--foreground)/0.12)_1px,transparent_1px)] [background-size:20px_20px]"
         onMouseDown={handleCanvasMouseDown}
         onMouseMove={handleCanvasMouseMove}
         onMouseUp={handleCanvasMouseUp}
@@ -233,6 +233,7 @@ export function CanvasFlowEditor() {
           className="absolute inset-0 origin-top-left will-change-transform"
           style={{
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transition: isPanning || activeDraggingNode ? undefined : "transform 0.18s cubic-bezier(0.25,0.46,0.45,0.94)",
           }}
         >
           {/* ORTHOGONAL STRAIGHT-SEGMENT CONNECTIONS */}
@@ -684,6 +685,56 @@ export function CanvasFlowEditor() {
             </div>
           )}
 
+        </div>
+
+        {/* ════════════════════════════════════════════ */}
+        {/* MINI-MAP OVERVIEW — bottom-right bird's-eye  */}
+        {/* ════════════════════════════════════════════ */}
+        <div
+          className="absolute bottom-4 right-4 z-40 bg-card/95 backdrop-blur-md border border-border/80 rounded-xl shadow-2xl overflow-hidden"
+          style={{ width: 140, height: 90 }}
+          title="Mini-Map: click to navigate"
+        >
+          {/* Mini-map label */}
+          <div className="absolute top-1 left-2 text-[8px] font-bold text-muted-foreground uppercase tracking-wider z-10 pointer-events-none">
+            Overview
+          </div>
+          {/* Scaled node dots */}
+          <div className="absolute inset-0" style={{ overflow: "hidden" }}>
+            {Object.entries(nodes).map(([key, pos]) => {
+              // Canvas world is ~2000×1400, map to 140×90 mini-map
+              const mx = (pos.x / 2000) * 140;
+              const my = (pos.y / 1400) * 90;
+              return (
+                <div
+                  key={key}
+                  className="absolute w-2.5 h-2 rounded-[2px] bg-primary/60 border border-primary/40"
+                  style={{ left: mx, top: my }}
+                  title={key}
+                />
+              );
+            })}
+            {/* Viewport rect overlay */}
+            {(() => {
+              const containerW = 1200; // approx viewport width
+              const containerH = 700;
+              const vpW = (containerW / zoom / 2000) * 140;
+              const vpH = (containerH / zoom / 1400) * 90;
+              const vpX = (-pan.x / zoom / 2000) * 140;
+              const vpY = (-pan.y / zoom / 1400) * 90;
+              return (
+                <div
+                  className="absolute border border-primary/70 bg-primary/8 rounded-[2px] pointer-events-none"
+                  style={{
+                    left: Math.max(0, vpX),
+                    top: Math.max(0, vpY),
+                    width: Math.min(vpW, 140),
+                    height: Math.min(vpH, 90),
+                  }}
+                />
+              );
+            })()}
+          </div>
         </div>
       </div>
 

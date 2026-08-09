@@ -1,5 +1,6 @@
 import { getRenderData } from "@/lib/renderStore";
 import type { CompositeParams } from "@/lib/compositor";
+import { ASPECT_RATIO_DIMENSIONS } from "@/lib/types";
 
 interface PageProps {
   searchParams: Promise<{ id?: string; data?: string }>;
@@ -196,6 +197,11 @@ function CoverSlide(p: CompositeParams) {
     ? `'${p.fontFamily}', 'Space Grotesk', sans-serif`
     : "'Space Grotesk', sans-serif";
 
+  const dims = ASPECT_RATIO_DIMENSIONS[p.aspectRatio ?? "4:5"];
+  const outerBg = p.cardOuterBg || "#0C1014";
+  const padding = p.cardPadding ?? 40;
+  const cardRadius = p.cardBorderRadius ?? 28;
+
   const isCustomBg = p.bgType === "custom" || Boolean(p.customBgImage);
   const customBgUrl = p.customBgImage
     ? (p.customBgImage.startsWith("http") || p.customBgImage.startsWith("data:") || p.customBgImage.startsWith("/"))
@@ -204,33 +210,64 @@ function CoverSlide(p: CompositeParams) {
     : "";
 
   return (
-    <div style={{ width: 1080, height: 1350, background: "#0d0d0d", position: "relative", overflow: "hidden", fontFamily: font, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-      {isCustomBg && customBgUrl ? (
-        <div style={{ position: "absolute", inset: 0, backgroundImage: `url("${customBgUrl}")`, backgroundSize: "cover", backgroundPosition: "center" }} />
-      ) : (
-        <>
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(145deg, #0d0d0d 0%, #1a1a2e 50%, #0d0d0d 100%)" }} />
-          <div style={{ position: "absolute", top: "30%", left: "50%", transform: "translate(-50%, -50%)", width: 700, height: 700, borderRadius: "50%", background: "radial-gradient(circle, rgba(120,80,255,0.15) 0%, transparent 70%)", pointerEvents: "none" }} />
-        </>
-      )}
-
-      {isCustomBg && (
-        <div style={{ position: "absolute", inset: 0, background: "rgba(0, 0, 0, 0.4)", zIndex: 1 }} />
-      )}
-
-      <div style={{ textAlign: "center", padding: "0 80px", zIndex: 5 }}>
-        <h1 style={{ fontFamily: font, fontWeight: 800, fontSize: 96, lineHeight: 1.05, color: "#ffffff", margin: 0, letterSpacing: "-0.02em" }}>
-          {p.coverTitle || "Your Title Here"}
-        </h1>
-        {p.coverSubtitle && (
-          <p style={{ fontFamily: font, fontWeight: 400, fontSize: 36, color: "rgba(255,255,255,0.6)", marginTop: 32, lineHeight: 1.4, letterSpacing: "0.01em" }}>
-            {p.coverSubtitle}
-          </p>
+    <div
+      style={{
+        width: dims.width,
+        height: dims.height,
+        background: outerBg,
+        position: "relative",
+        overflow: "hidden",
+        padding: padding,
+        boxSizing: "border-box",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          borderRadius: `${cardRadius}px`,
+          overflow: "hidden",
+          position: "relative",
+          background: "#0d0d0d",
+          fontFamily: font,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+          boxShadow: "0 24px 60px rgba(0,0,0,0.6)",
+        }}
+      >
+        {isCustomBg && customBgUrl ? (
+          <div style={{ position: "absolute", inset: 0, backgroundImage: `url("${customBgUrl}")`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        ) : (
+          <>
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(145deg, #0d0d0d 0%, #1a1a2e 50%, #0d0d0d 100%)" }} />
+            <div style={{ position: "absolute", top: "30%", left: "50%", transform: "translate(-50%, -50%)", width: 700, height: 700, borderRadius: "50%", background: "radial-gradient(circle, rgba(120,80,255,0.15) 0%, transparent 70%)", pointerEvents: "none" }} />
+          </>
         )}
-      </div>
 
-      <NoiseOverlay opacity={p.noiseOpacity} />
-      <Branding {...p} />
+        {isCustomBg && (
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0, 0, 0, 0.4)", zIndex: 1 }} />
+        )}
+
+        <div style={{ textAlign: "center", padding: "0 80px", zIndex: 5 }}>
+          <h1 style={{ fontFamily: font, fontWeight: 800, fontSize: 96, lineHeight: 1.05, color: "#ffffff", margin: 0, letterSpacing: "-0.02em" }}>
+            {p.coverTitle || "Your Title Here"}
+          </h1>
+          {p.coverSubtitle && (
+            <p style={{ fontFamily: font, fontWeight: 400, fontSize: 36, color: "rgba(255,255,255,0.6)", marginTop: 32, lineHeight: 1.4, letterSpacing: "0.01em" }}>
+              {p.coverSubtitle}
+            </p>
+          )}
+        </div>
+
+        <NoiseOverlay opacity={p.noiseOpacity} />
+        <Branding {...p} />
+      </div>
     </div>
   );
 }
@@ -240,6 +277,11 @@ function ContentSlide(p: CompositeParams) {
   const font = p.fontFamily
     ? `'${p.fontFamily}', 'Space Grotesk', sans-serif`
     : "'Space Grotesk', sans-serif";
+
+  const dims = ASPECT_RATIO_DIMENSIONS[p.aspectRatio ?? "4:5"];
+  const outerBg = p.cardOuterBg || "#0C1014";
+  const padding = p.cardPadding ?? 40;
+  const cardRadius = p.cardBorderRadius ?? 28;
 
   const shadow = p.dropShadow
     ? "0 32px 80px rgba(0,0,0,0.7), 0 8px 24px rgba(0,0,0,0.5)"
@@ -269,58 +311,85 @@ function ContentSlide(p: CompositeParams) {
     : "linear-gradient(135deg,#1a1a2e,#16213e)";
 
   return (
-    <div style={{ width: 1080, height: 1350, background: "#0d0d0d", position: "relative", overflow: "hidden", fontFamily: font }}>
-      {isCustomBg && customBgUrl ? (
-        <div style={{ position: "absolute", inset: 0, backgroundImage: `url("${customBgUrl}")`, backgroundSize: "cover", backgroundPosition: "center" }} />
-      ) : p.showBlurredBg && hasScreenshot ? (
-        <div style={{ position: "absolute", inset: -40, backgroundImage: blurredBgStyle, backgroundSize: "cover", backgroundPosition: "center top", filter: `blur(${p.blurAmount}px) brightness(0.3) saturate(0.6)`, transform: "scale(1.1)" }} />
-      ) : (
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(145deg, #0d0d0d 0%, #161626 50%, #0d0d0d 100%)" }} />
-      )}
-
-      <div style={{ position: "absolute", inset: 0, background: isCustomBg ? "linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0.85) 100%)" : "linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.8) 100%)" }} />
-
-      {/* Screenshot card */}
-      <div style={{ position: "absolute", top: sTop, left: 80, width: 920, height: sHeight, zIndex: 5, borderRadius: `${p.borderRadius}px`, overflow: "hidden", boxShadow: shadow, background: "rgba(255,255,255,0.04)" }}>
-        {hasScreenshot ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={screenshotSrc}
-            decoding="sync"
-            loading="eager"
-            alt="Website screenshot"
-            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }}
-          />
+    <div
+      style={{
+        width: dims.width,
+        height: dims.height,
+        background: outerBg,
+        position: "relative",
+        overflow: "hidden",
+        padding: padding,
+        boxSizing: "border-box",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          borderRadius: `${cardRadius}px`,
+          overflow: "hidden",
+          position: "relative",
+          background: "#0d0d0d",
+          fontFamily: font,
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+          boxShadow: "0 24px 60px rgba(0,0,0,0.6)",
+        }}
+      >
+        {isCustomBg && customBgUrl ? (
+          <div style={{ position: "absolute", inset: 0, backgroundImage: `url("${customBgUrl}")`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        ) : p.showBlurredBg && hasScreenshot ? (
+          <div style={{ position: "absolute", inset: -40, backgroundImage: blurredBgStyle, backgroundSize: "cover", backgroundPosition: "center top", filter: `blur(${p.blurAmount}px) brightness(0.3) saturate(0.6)`, transform: "scale(1.1)" }} />
         ) : (
-          <div style={{ width: "100%", height: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.3)", fontSize: 24, fontWeight: 500 }}>
-            No Preview Available
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(145deg, #0d0d0d 0%, #161626 50%, #0d0d0d 100%)" }} />
+        )}
+
+        <div style={{ position: "absolute", inset: 0, background: isCustomBg ? "linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0.85) 100%)" : "linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.8) 100%)" }} />
+
+        {/* Screenshot card */}
+        <div style={{ position: "absolute", top: `${(sTop / 1350) * 100}%`, left: "7.41%", width: "85.18%", height: `${(sHeight / 1350) * 100}%`, zIndex: 5, borderRadius: `${p.borderRadius}px`, overflow: "hidden", boxShadow: shadow, background: "rgba(255,255,255,0.04)" }}>
+          {hasScreenshot ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={screenshotSrc}
+              decoding="sync"
+              loading="eager"
+              alt="Website screenshot"
+              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }}
+            />
+          ) : (
+            <div style={{ width: "100%", height: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.3)", fontSize: 24, fontWeight: 500 }}>
+              No Preview Available
+            </div>
+          )}
+        </div>
+
+        {/* Site title */}
+        <h2 style={{ position: "absolute", top: `${(tTop / 1350) * 100}%`, left: "7.41%", width: "85.18%", height: 50, zIndex: 5, fontFamily: font, fontWeight: 700, fontSize: 44, color: "#ffffff", margin: 0, lineHeight: "50px", letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {p.siteTitle || "Site Title"}
+        </h2>
+
+        {/* Description */}
+        {p.siteDescription && (
+          <p style={{ position: "absolute", top: `${(subTop / 1350) * 100}%`, left: "7.41%", width: "85.18%", height: 74, zIndex: 5, fontFamily: font, fontWeight: 400, fontSize: 24, color: "rgba(255,255,255,0.6)", margin: 0, lineHeight: "36px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+            {p.siteDescription}
+          </p>
+        )}
+
+        {/* URL pill */}
+        {p.siteUrl && (
+          <div style={{ position: "absolute", top: `${(pillTop / 1350) * 100}%`, left: "7.41%", width: "85.18%", height: 54, zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "12px 36px", borderRadius: 40, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.16)", color: "#ffffff", fontFamily: font, fontSize: 20, fontWeight: 600, letterSpacing: "0.01em", boxShadow: "0 8px 24px rgba(0,0,0,0.3)" }}>
+              {p.siteUrl}
+            </div>
           </div>
         )}
+
+        <NoiseOverlay opacity={p.noiseOpacity} />
+        <Branding {...p} />
       </div>
-
-      {/* Site title */}
-      <h2 style={{ position: "absolute", top: tTop, left: 80, width: 920, height: 50, zIndex: 5, fontFamily: font, fontWeight: 700, fontSize: 44, color: "#ffffff", margin: 0, lineHeight: "50px", letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-        {p.siteTitle || "Site Title"}
-      </h2>
-
-      {/* Description */}
-      {p.siteDescription && (
-        <p style={{ position: "absolute", top: subTop, left: 80, width: 920, height: 74, zIndex: 5, fontFamily: font, fontWeight: 400, fontSize: 24, color: "rgba(255,255,255,0.6)", margin: 0, lineHeight: "36px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-          {p.siteDescription}
-        </p>
-      )}
-
-      {/* URL pill */}
-      {p.siteUrl && (
-        <div style={{ position: "absolute", top: pillTop, left: 80, width: 920, height: 54, zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "12px 36px", borderRadius: 40, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.16)", color: "#ffffff", fontFamily: font, fontSize: 20, fontWeight: 600, letterSpacing: "0.01em", boxShadow: "0 8px 24px rgba(0,0,0,0.3)" }}>
-            {p.siteUrl}
-          </div>
-        </div>
-      )}
-
-      <NoiseOverlay opacity={p.noiseOpacity} />
-      <Branding {...p} />
     </div>
   );
 }

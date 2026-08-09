@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Type, Upload, Search, Check, RefreshCcw, Layers, Folder } from "lucide-react";
+import { Type, Upload, Search, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

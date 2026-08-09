@@ -23,6 +23,11 @@ export interface DesignTemplate {
   bgType: "default" | "blurred" | "custom";
   customBgImage?: string;
   
+  // Card Framing Settings
+  cardOuterBg?: string;
+  cardPadding?: number;
+  cardBorderRadius?: number;
+  
   // Positioning Settings
   screenshotTop: number;
   screenshotHeight: number;
@@ -58,6 +63,9 @@ export const DEFAULT_TEMPLATES: DesignTemplate[] = [
     dropShadow: true,
     showBlurredBg: false,
     bgType: "default",
+    cardOuterBg: "#0C1014",
+    cardPadding: 40,
+    cardBorderRadius: 28,
     
     screenshotTop: 240,
     screenshotHeight: 520,

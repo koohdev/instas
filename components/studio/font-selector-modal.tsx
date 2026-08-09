@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Check, Type, Search, Upload } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 
 interface FontSelectorModalProps {
@@ -137,13 +138,18 @@ export function FontSelectorModal({
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[62vh] overflow-y-auto pr-1 p-1">
-              {families.map((item) => {
+              {families.map((item, idx) => {
                 const isSelected = selectedFontFamily === item.family;
                 return (
-                  <div
+                  <motion.div
                     key={item.family}
                     onClick={() => handleChoose(item.family)}
-                    className={`group relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all active:scale-[0.98] ${
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.03, duration: 0.2 }}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`group relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-colors ${
                       isSelected
                         ? "border-primary ring-2 ring-primary/40 shadow-xl bg-primary/5"
                         : "border-border/80 hover:border-primary/60 hover:shadow-md bg-card"
@@ -157,11 +163,19 @@ export function FontSelectorModal({
                         </Badge>
                       </div>
 
-                      {isSelected && (
-                        <Badge className="bg-primary text-primary-foreground text-[10px] gap-1 shadow-md shrink-0">
-                          <Check className="w-3 h-3 stroke-[3]" /> Active
-                        </Badge>
-                      )}
+                      <AnimatePresence>
+                        {isSelected && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                          >
+                            <Badge className="bg-primary text-primary-foreground text-[10px] gap-1 shadow-md shrink-0">
+                              <Check className="w-3 h-3 stroke-[3]" /> Active
+                            </Badge>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
 
                     {/* Live Font Specimen Render Box */}
@@ -172,19 +186,21 @@ export function FontSelectorModal({
                       >
                         Stop making components
                       </span>
-                      <span
+                      <motion.span
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
                         className="text-xs text-muted-foreground truncate"
                         style={{ fontFamily: `'${item.family}', sans-serif` }}
                       >
                         The quick brown fox jumps over the lazy dog
-                      </span>
+                      </motion.span>
                     </div>
 
                     <div className="pt-2 border-t border-border/40 flex justify-between items-center text-[10px] font-mono text-muted-foreground">
                       <span>FAMILY SPECIMEN</span>
                       <span className="group-hover:text-primary transition-colors font-semibold">Select Font &rarr;</span>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>

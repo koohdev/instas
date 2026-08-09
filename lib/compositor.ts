@@ -1,6 +1,8 @@
 import { chromium, Browser } from "playwright";
 import { saveRenderData, deleteRenderData } from "./renderStore";
 import crypto from "crypto";
+import type { AspectRatio } from "./types";
+import { ASPECT_RATIO_DIMENSIONS } from "./types";
 
 export interface CompositeParams {
   type: "cover" | "content";
@@ -28,12 +30,18 @@ export interface CompositeParams {
   bgType?: "default" | "blurred" | "custom";
   customBgImage?: string;
   fontFamily?: string;
+  // Card Outer Framing
+  cardOuterBg?: string;
+  cardPadding?: number;
+  cardBorderRadius?: number;
   // Layout offsets (px)
   screenshotTop?: number;
   screenshotHeight?: number;
   titleTop?: number;
   subtitleTop?: number;
   urlPillTop?: number;
+  // Export format
+  aspectRatio?: AspectRatio;
 }
 
 export async function compositeSlide(
@@ -45,8 +53,9 @@ export async function compositeSlide(
   saveRenderData(id, params);
 
   const browser = existingBrowser || (await chromium.launch({ headless: true }));
+  const dims = ASPECT_RATIO_DIMENSIONS[params.aspectRatio ?? "4:5"];
   const context = await browser.newContext({
-    viewport: { width: 1080, height: 1350 },
+    viewport: { width: dims.width, height: dims.height },
     deviceScaleFactor: 1,
   });
   const page = await context.newPage();

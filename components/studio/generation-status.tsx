@@ -1,11 +1,29 @@
+"use client";
+
 import { useState } from "react";
-import { Wand2, Play, CheckCheck, Folder, Check, Copy } from "lucide-react";
+import { Wand2, Play, CheckCheck, Folder, Check, Copy, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Frame, FramePanel } from "@/components/ui/frame";
 import { useGeneration } from "@/hooks/useGeneration";
 import { useAppStore } from "@/lib/store";
+
+// Generation step definitions
+const STEPS = [
+  { label: "Scraping URLs", threshold: 0 },
+  { label: "Compositing Slides", threshold: 25 },
+  { label: "Applying Overlays", threshold: 65 },
+  { label: "Exporting PNG", threshold: 88 },
+];
+
+function getActiveStep(progress: number): number {
+  for (let i = STEPS.length - 1; i >= 0; i--) {
+    if (progress >= STEPS[i].threshold) return i;
+  }
+  return 0;
+}
 
 export function GenerationStatus() {
   const store = useAppStore();
@@ -17,6 +35,8 @@ export function GenerationStatus() {
   const onGenerateClick = () => {
     handleGenerate(urlList);
   };
+
+  const activeStep = getActiveStep(progress);
 
   return (
     <div className="flex flex-col gap-4">
@@ -33,14 +53,16 @@ export function GenerationStatus() {
             : "bg-primary hover:bg-primary/90 text-primary-foreground"
         }`}
       >
+        {/* Progress fill bar */}
         {status === "loading" && (
-          <div
-            className="absolute inset-y-0 left-0 bg-primary/25 border-r-2 border-primary/80 transition-all duration-300 ease-out flex items-center justify-end overflow-hidden"
-            style={{ width: `${Math.max(Math.round(progress), 4)}%` }}
+          <motion.div
+            className="absolute inset-y-0 left-0 bg-primary/25 border-r-2 border-primary/80"
+            initial={{ width: "4%" }}
+            animate={{ width: `${Math.max(Math.round(progress), 4)}%` }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            {/* Subtle monochrome shine sweep */}
             <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.15)_50%,transparent_100%)] animate-pulse" />
-          </div>
+          </motion.div>
         )}
         <span className="relative z-10 flex items-center justify-center gap-2">
           {status === "loading" ? (
@@ -62,6 +84,70 @@ export function GenerationStatus() {
         </span>
       </Button>
 
+      {/* Animated Progress Stepper */}
+      <AnimatePresence>
+        {status === "loading" && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+            className="flex items-center justify-between px-1"
+          >
+            {STEPS.map((step, idx) => {
+              const isDone = idx < activeStep;
+              const isActive = idx === activeStep;
+              return (
+                <div key={step.label} className="flex flex-col items-center gap-1.5 flex-1">
+                  <div className="flex items-center w-full">
+                    {idx > 0 && (
+                      <motion.div
+                        className="flex-1 h-px bg-border"
+                        animate={{ backgroundColor: isDone ? "hsl(var(--primary))" : "hsl(var(--border))" }}
+                        transition={{ duration: 0.4 }}
+                      />
+                    )}
+                    <motion.div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2 transition-colors ${
+                        isDone
+                          ? "bg-primary border-primary text-primary-foreground"
+                          : isActive
+                          ? "bg-primary/10 border-primary text-primary"
+                          : "bg-muted border-border text-muted-foreground"
+                      }`}
+                      animate={{ scale: isActive ? [1, 1.1, 1] : 1 }}
+                      transition={{ duration: 0.6, repeat: isActive ? Infinity : 0, repeatDelay: 1 }}
+                    >
+                      {isDone ? (
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      ) : isActive ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <span className="text-[10px] font-bold">{idx + 1}</span>
+                      )}
+                    </motion.div>
+                    {idx < STEPS.length - 1 && (
+                      <motion.div
+                        className="flex-1 h-px bg-border"
+                        animate={{ backgroundColor: isDone ? "hsl(var(--primary))" : "hsl(var(--border))" }}
+                        transition={{ duration: 0.4 }}
+                      />
+                    )}
+                  </div>
+                  <span
+                    className={`text-[9px] font-semibold text-center leading-tight ${
+                      isActive ? "text-primary" : isDone ? "text-foreground/60" : "text-muted-foreground"
+                    }`}
+                  >
+                    {step.label}
+                  </span>
+                </div>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Redesigned Success Result Card */}
       {result && (
         <Frame variant="default" spacing="sm" className="border-emerald-500/40 bg-gradient-to-br from-emerald-500/10 via-card to-teal-500/5 shadow-xl transition-all">
@@ -77,6 +163,16 @@ export function GenerationStatus() {
                 {result.slides.length} Slides Ready
               </Badge>
             </div>
+
+            {/* PDF path if linkedin export */}
+            {result.pdfPath && (
+              <div className="flex flex-col gap-1 bg-blue-500/10 p-2 rounded-lg border border-blue-500/20 text-xs">
+                <span className="text-[11px] font-semibold text-blue-300 flex items-center gap-1">
+                  📄 LinkedIn PDF Generated
+                </span>
+                <p className="font-mono text-[11px] text-foreground/80 break-all">{result.pdfPath}</p>
+              </div>
+            )}
 
             <div className="flex flex-col gap-1.5 bg-muted/40 p-2.5 rounded-lg border border-border/50 text-xs">
               <div className="flex items-center justify-between text-muted-foreground">
@@ -108,8 +204,11 @@ export function GenerationStatus() {
               </span>
               <div className="flex flex-col gap-1 max-h-40 overflow-y-auto pr-1">
                 {result.slides.map((s, idx) => (
-                  <div
+                  <motion.div
                     key={s.filename}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.04, duration: 0.2 }}
                     className="text-xs flex items-center justify-between p-2 rounded-md bg-card border border-border/40 hover:border-primary/40 transition-all"
                   >
                     <div className="flex items-center gap-2 min-w-0">
@@ -125,7 +224,7 @@ export function GenerationStatus() {
                         <Check className="w-3 h-3 stroke-[3]" /> Ready
                       </span>
                     )}
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>

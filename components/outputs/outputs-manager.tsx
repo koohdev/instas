@@ -286,6 +286,7 @@ export function OutputsManager() {
       {viewMode === "grid" && (
         <OutputsGridView
           items={filteredOutputs}
+          loading={loading}
           onSelectBatch={(item) => {
             playClick();
             setSelectedBatch(item);

@@ -5,6 +5,8 @@ import { chromium } from "playwright";
 import { scrapeUrl } from "@/lib/scraper";
 import { compositeSlide, CompositeParams } from "@/lib/compositor";
 import { getOutputDir, savePng } from "@/lib/output";
+import type { AspectRatio } from "@/lib/types";
+import { ASPECT_RATIO_DIMENSIONS } from "@/lib/types";
 
 export const maxDuration = 300; // 5 min max for route handler
 
@@ -17,6 +19,7 @@ export async function POST(req: NextRequest) {
       coverTitle,
       coverSubtitle,
       batchName,
+      aspectRatio,
       topLeftText,
       topRightText,
       bottomLeftText,
@@ -30,6 +33,9 @@ export async function POST(req: NextRequest) {
       showBlurredBg,
       bgType,
       customBgImage,
+      cardOuterBg,
+      cardPadding,
+      cardBorderRadius,
       screenshotTop,
       screenshotHeight,
       titleTop,
@@ -40,6 +46,7 @@ export async function POST(req: NextRequest) {
       coverTitle: string;
       coverSubtitle: string;
       batchName?: string;
+      aspectRatio?: AspectRatio;
       topLeftText?: string;
       topRightText?: string;
       bottomLeftText?: string;
@@ -53,6 +60,9 @@ export async function POST(req: NextRequest) {
       showBlurredBg: boolean;
       bgType?: "default" | "blurred" | "custom";
       customBgImage?: string;
+      cardOuterBg?: string;
+      cardPadding?: number;
+      cardBorderRadius?: number;
       screenshotTop?: number;
       screenshotHeight?: number;
       titleTop?: number;
@@ -94,11 +104,15 @@ export async function POST(req: NextRequest) {
       showBlurredBg: showBlurredBg ?? false,
       bgType: bgType || "default",
       customBgImage: customBgImage || "",
+      cardOuterBg: cardOuterBg || "#0C1014",
+      cardPadding: cardPadding ?? 40,
+      cardBorderRadius: cardBorderRadius ?? 28,
       screenshotTop: screenshotTop ?? 240,
       screenshotHeight: screenshotHeight ?? 520,
       titleTop: titleTop ?? 790,
       subtitleTop: subtitleTop ?? 854,
       urlPillTop: urlPillTop ?? 940,
+      aspectRatio: aspectRatio ?? "4:5",
     };
 
     // Shared browser instance for 3-5x faster batch processing
@@ -171,7 +185,43 @@ export async function POST(req: NextRequest) {
     await browser.close();
     browser = undefined;
 
-    return NextResponse.json({ outputDir, slides: results });
+    // LinkedIn PDF: render all slides into a single PDF using Playwright
+    let pdfPath: string | undefined;
+    if (aspectRatio === "linkedin-pdf") {
+      try {
+        const pdfBrowser = await chromium.launch({ headless: true });
+        const dims = ASPECT_RATIO_DIMENSIONS["linkedin-pdf"];
+        const pdfContext = await pdfBrowser.newContext({ viewport: { width: dims.width, height: dims.height } });
+        const pdfPage = await pdfContext.newPage();
+        const pdfFilename = `${(batchName || coverTitle || "carousel").replace(/[^a-z0-9_-]/gi, "_")}.pdf`;
+        pdfPath = path.join(outputDir, pdfFilename);
+
+        // Build a multi-page HTML document containing all slides
+        const slideHtml = results
+          .filter((r) => !r.error)
+          .map((r) => {
+            const imgPath = path.join(outputDir, r.filename);
+            if (!fs.existsSync(imgPath)) return "";
+            const base64 = fs.readFileSync(imgPath).toString("base64");
+            return `<div style="width:${dims.width}px;height:${dims.height}px;page-break-after:always;overflow:hidden;"><img src="data:image/png;base64,${base64}" style="width:100%;height:100%;object-fit:cover;"/></div>`;
+          })
+          .join("");
+
+        await pdfPage.setContent(`<html><body style="margin:0;padding:0;">${slideHtml}</body></html>`, { waitUntil: "networkidle" });
+        const pdfBuf = await pdfPage.pdf({
+          width: `${dims.width}px`,
+          height: `${dims.height}px`,
+          printBackground: true,
+        });
+        fs.writeFileSync(pdfPath, pdfBuf);
+        await pdfContext.close();
+        await pdfBrowser.close();
+      } catch (pdfErr: unknown) {
+        console.error("PDF generation error:", pdfErr);
+      }
+    }
+
+    return NextResponse.json({ outputDir, slides: results, pdfPath });
   } catch (err: unknown) {
     if (browser) {
       await browser.close().catch(() => {});

@@ -310,3 +310,9 @@ input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.2); }
     scroll-behavior: auto !important;
   }
 }
+
+/* Shimmer sweep animation for skeleton loading cards */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

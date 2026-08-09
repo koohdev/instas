@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { getDesktopPath } from "@/lib/output";
@@ -40,7 +39,8 @@ export async function GET(request: Request) {
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
-  } catch (error: any) {
-    return new Response(error.message, { status: 500 });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Internal server error";
+    return new Response(msg, { status: 500 });
   }
 }

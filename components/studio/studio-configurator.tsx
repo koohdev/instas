@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCheck, Sparkles, RotateCcw, Sliders, Type, LayoutGrid } from "lucide-react";
+import { CheckCheck, Sparkles, RotateCcw, Sliders, Type, LayoutGrid, Smartphone, Square, RectangleHorizontal, Monitor, FileText, Maximize2 } from "lucide-react";
 import { Frame, FramePanel } from "@/components/ui/frame";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { useAppStore } from "@/lib/store";
 import { sanitizeUrls } from "@/utils/url-sanitizer";
-
+import type { AspectRatio } from "@/lib/types";
 import { FontSelectorModal } from "./font-selector-modal";
 
 export function StudioConfigurator() {
@@ -107,9 +107,9 @@ export function StudioConfigurator() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label className="text-xs uppercase font-semibold text-muted-foreground">Cover Design Style</Label>
-                <Select
+              <Select
                   value={store.settings.coverStyle}
-                  onValueChange={(val: any) => store.updateSetting("coverStyle", val)}
+                  onValueChange={(val) => store.updateSetting("coverStyle", val as "minimal" | "bold" | "modern")}
                 >
                   <SelectTrigger className="w-full h-9 text-xs capitalize">
                     <SelectValue placeholder="Select cover style..." />
@@ -158,40 +158,53 @@ export function StudioConfigurator() {
               </div>
             </div>
           </div>
-
-          {/* SECTION 3: ASPECT RATIO & VISUAL CONTROLS (PLACED DIRECTLY BELOW COVER) */}
+          {/* SECTION 3: EXPORT FORMAT & TEMPLATE PRESET */}
           <div className="flex flex-col gap-4 pt-4 border-t border-border/40">
             <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <LayoutGrid className="w-3.5 h-3.5 text-primary" /> 3. Aspect Ratio & Visual Controls
+              <LayoutGrid className="w-3.5 h-3.5 text-primary" /> 3. Export Format &amp; Template
             </Label>
 
+            {/* FORMAT SWITCHER — 5 platform formats */}
             <div className="grid gap-2">
-              <Label className="text-xs uppercase font-semibold text-muted-foreground">Canvas Aspect Ratio</Label>
-              <Select
-                value={store.aspectRatio}
-                onValueChange={(val: any) => store.setAspectRatio(val)}
-              >
-                <SelectTrigger className="w-full h-9 text-xs">
-                  <SelectValue placeholder="Select aspect ratio..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="4:5">4:5 (Instagram Feed 1080×1350)</SelectItem>
-                  <SelectItem value="1:1">1:1 (Square Feed 1080×1080)</SelectItem>
-                  <SelectItem value="9:16">9:16 (Instagram Story 1080×1920)</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="text-xs uppercase font-semibold text-muted-foreground flex items-center gap-1.5">
+                <LayoutGrid className="w-3 h-3" /> Platform Format
+              </Label>
+              <div className="grid grid-cols-5 gap-1 p-1 bg-muted/40 rounded-xl border border-border/60">
+                {(([
+                  { value: "9:16" as AspectRatio, icon: Smartphone, label: "Story", sub: "9:16" },
+                  { value: "1:1" as AspectRatio, icon: Square, label: "Square", sub: "1:1" },
+                  { value: "4:5" as AspectRatio, icon: RectangleHorizontal, label: "Feed", sub: "4:5" },
+                  { value: "16:9" as AspectRatio, icon: Monitor, label: "X Banner", sub: "16:9" },
+                  { value: "linkedin-pdf" as AspectRatio, icon: FileText, label: "LinkedIn", sub: "PDF" },
+                ] as const)).map(({ value, icon: Icon, label, sub }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => store.setAspectRatio(value)}
+                    className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-lg text-center transition-all duration-200 ${
+                      store.aspectRatio === value
+                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-bold leading-none">{label}</span>
+                    <span className="text-[8px] font-mono opacity-60">{sub}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="grid gap-2">
               <Label className="text-xs uppercase font-semibold text-muted-foreground">Design Template Preset</Label>
               {(() => {
                 const activeTpl = store.templates.find(
-                  (t) => t.id === (store.settings as any).activeTemplateId || t.customBgImage === store.settings.customBgImage
+                  (t) => t.id === store.activeTemplateId || t.customBgImage === store.settings.customBgImage
                 );
                 return (
                   <Select
-                    value={(store.settings as any).activeTemplateId || activeTpl?.id || ""}
-                    onValueChange={(tplId: any) => {
+                    value={store.activeTemplateId || activeTpl?.id || ""}
+                    onValueChange={(tplId) => {
                       if (!tplId) return;
                       const found = store.templates.find((t) => t.id === tplId);
                       if (found) {
@@ -216,6 +229,81 @@ export function StudioConfigurator() {
               })()}
             </div>
           </div>
+
+          {/* SECTION 4: CARD FRAMING & PADDING */}
+          <div className="flex flex-col gap-4 pt-4 border-t border-border/40">
+            <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+              <Maximize2 className="w-3.5 h-3.5 text-primary" /> 4. Card Framing &amp; Padding
+            </Label>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <div className="flex justify-between items-center">
+                  <Label className="text-xs uppercase font-semibold text-muted-foreground">
+                    Outer Padding ({store.settings.cardPadding ?? 40}px)
+                  </Label>
+                </div>
+                <Slider
+                  value={[store.settings.cardPadding ?? 40]}
+                  min={0}
+                  max={80}
+                  step={2}
+                  onValueChange={(val) => store.updateSetting("cardPadding", Array.isArray(val) ? val[0] : val)}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <div className="flex justify-between items-center">
+                  <Label className="text-xs uppercase font-semibold text-muted-foreground">
+                    Inner Card Radius ({store.settings.cardBorderRadius ?? 28}px)
+                  </Label>
+                </div>
+                <Slider
+                  value={[store.settings.cardBorderRadius ?? 28]}
+                  min={0}
+                  max={48}
+                  step={2}
+                  onValueChange={(val) => store.updateSetting("cardBorderRadius", Array.isArray(val) ? val[0] : val)}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label className="text-xs uppercase font-semibold text-muted-foreground">
+                Frame Outer Color
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="text"
+                  value={store.settings.cardOuterBg || "#0C1014"}
+                  onChange={(e) => store.updateSetting("cardOuterBg", e.target.value)}
+                  className="h-8 text-xs font-mono w-28 bg-muted/20"
+                />
+                <div className="flex items-center gap-1.5">
+                  {[
+                    { label: "Default Dark", hex: "#0C1014" },
+                    { label: "Pure Black", hex: "#000000" },
+                    { label: "Slate", hex: "#0F172A" },
+                    { label: "Zinc", hex: "#18181B" },
+                  ].map((color) => (
+                    <button
+                      key={color.hex}
+                      type="button"
+                      onClick={() => store.updateSetting("cardOuterBg", color.hex)}
+                      className={`w-6 h-6 rounded-full border transition-all cursor-pointer ${
+                        (store.settings.cardOuterBg || "#0C1014").toLowerCase() === color.hex.toLowerCase()
+                          ? "ring-2 ring-primary border-white scale-110"
+                          : "border-white/20 hover:scale-105"
+                      }`}
+                      style={{ backgroundColor: color.hex }}
+                      title={color.label}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
 
         </div>
       </FramePanel>

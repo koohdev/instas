@@ -158,8 +158,9 @@ export async function GET() {
     batches.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return NextResponse.json({ success: true, outputs: batches, usedUrls: Array.from(usedUrlsSet) });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }
 
@@ -185,8 +186,9 @@ export async function PATCH(request: Request) {
     writeMetadataStore(metadataMap);
 
     return NextResponse.json({ success: true, item: existing });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }
 
@@ -219,7 +221,8 @@ export async function DELETE(request: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

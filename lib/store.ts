@@ -3,8 +3,9 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import type { DesignTemplate } from "@/lib/templateStore";
 import type { SavedUrlItem } from "@/lib/urlLibraryStore";
 import type { BackgroundItem } from "@/app/api/backgrounds/route";
-
 import type { FontItem } from "@/app/api/fonts/route";
+import type { AspectRatio, BatchQueueItem } from "@/lib/types";
+import { ASPECT_RATIO_LAYOUT_PRESETS } from "@/lib/types";
 
 // The settings state that the configurator modifies live
 export type ActiveSettings = Omit<DesignTemplate, "id" | "name" | "description" | "isDefault">;
@@ -86,6 +87,7 @@ function injectFontFaceRules(fonts: FontItem[], currentFontFamily?: string): str
 export interface GenerateResult {
   outputDir: string;
   slides: { filename: string; url?: string; error?: string }[];
+  pdfPath?: string;
 }
 
 interface AppState {
@@ -105,7 +107,8 @@ interface AppState {
 
   // Active Studio State
   activeTab: string;
-  aspectRatio: "4:5" | "1:1" | "9:16";
+  aspectRatio: AspectRatio;
+  activeTemplateId: string;
   urls: string;
   batchName: string;
   
@@ -114,11 +117,14 @@ interface AppState {
   
   selectedSavedUrlIds: string[];
 
+  // Batch Queue
+  batchQueue: BatchQueueItem[];
+
   // Actions
   setActiveTab: (tab: string) => void;
   setUrls: (urls: string) => void;
   setBatchName: (name: string) => void;
-  setAspectRatio: (ratio: "4:5" | "1:1" | "9:16") => void;
+  setAspectRatio: (ratio: AspectRatio) => void;
   setSelectedSavedUrlIds: (ids: string[]) => void;
   
   updateSetting: <K extends keyof ActiveSettings>(key: K, value: ActiveSettings[K]) => void;
@@ -134,6 +140,12 @@ interface AppState {
   // Background Generation Engine
   handleGenerate: (urlList: string[]) => Promise<void>;
   resetGeneration: () => void;
+
+  // Batch Queue Actions
+  enqueueBatch: (urls: string[], batchName: string) => void;
+  runBatchQueue: () => Promise<void>;
+  clearBatchQueue: () => void;
+  removeBatchQueueItem: (id: string) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -155,10 +167,12 @@ export const useAppStore = create<AppState>()(
 
       // Active Studio State
       activeTab: "studio",
-      aspectRatio: "4:5",
+      aspectRatio: "4:5" as AspectRatio,
+      activeTemplateId: "",
       urls: "",
       batchName: "",
       selectedSavedUrlIds: [],
+      batchQueue: [] as BatchQueueItem[],
       
       settings: {
         coverTitle: "",
@@ -184,11 +198,17 @@ export const useAppStore = create<AppState>()(
         urlPillTop: 940,
       },
 
-      // Actions
       setActiveTab: (tab) => set({ activeTab: tab }),
       setUrls: (urls) => set({ urls }),
       setBatchName: (name) => set({ batchName: name }),
-      setAspectRatio: (ratio) => set({ aspectRatio: ratio }),
+      setAspectRatio: (ratio) => {
+        // Auto-apply layout presets when switching aspect ratios
+        const preset = ASPECT_RATIO_LAYOUT_PRESETS[ratio];
+        set((state) => ({
+          aspectRatio: ratio,
+          settings: { ...state.settings, ...preset },
+        }));
+      },
       setSelectedSavedUrlIds: (ids) => set({ selectedSavedUrlIds: ids }),
 
       updateSetting: (key, value) => set((state) => ({
@@ -196,12 +216,11 @@ export const useAppStore = create<AppState>()(
       })),
 
       applyTemplate: (t) => {
-        // Extract everything except id, name, description, isDefault
         const { id, name, description, isDefault, ...templateSettings } = t;
         set({
+          activeTemplateId: id,
           settings: {
             ...templateSettings,
-            activeTemplateId: id,
           }
         });
       },
@@ -256,6 +275,7 @@ export const useAppStore = create<AppState>()(
             body: JSON.stringify({
               urls: urlList,
               batchName: get().batchName,
+              aspectRatio: get().aspectRatio,
               ...get().settings,
             }),
           });
@@ -382,6 +402,67 @@ export const useAppStore = create<AppState>()(
         });
       },
 
+      // Batch Queue Actions
+      enqueueBatch: (urls, batchName) => {
+        const item: BatchQueueItem = {
+          id: crypto.randomUUID(),
+          urls,
+          batchName: batchName || `Batch ${new Date().toLocaleTimeString()}`,
+          status: "pending",
+          createdAt: new Date().toISOString(),
+        };
+        set((state) => ({ batchQueue: [...state.batchQueue, item] }));
+      },
+
+      runBatchQueue: async () => {
+        const queue = get().batchQueue;
+        const pending = queue.filter((i) => i.status === "pending");
+        if (pending.length === 0) return;
+
+        for (const item of pending) {
+          set((state) => ({
+            batchQueue: state.batchQueue.map((i) =>
+              i.id === item.id ? { ...i, status: "running" } : i
+            ) as BatchQueueItem[],
+          }));
+
+          try {
+            const res = await fetch("/api/generate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                urls: item.urls,
+                batchName: item.batchName,
+                aspectRatio: get().aspectRatio,
+                ...get().settings,
+              }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Generation failed");
+
+            set((state) => ({
+              batchQueue: state.batchQueue.map((i) =>
+                i.id === item.id ? { ...i, status: "done", result: data } : i
+              ) as BatchQueueItem[],
+            }));
+
+            await get().fetchData();
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : "Unknown error";
+            set((state) => ({
+              batchQueue: state.batchQueue.map((i) =>
+                i.id === item.id ? { ...i, status: "error", errorMsg: msg } : i
+              ) as BatchQueueItem[],
+            }));
+          }
+        }
+      },
+
+      clearBatchQueue: () => set({ batchQueue: [] }),
+
+      removeBatchQueueItem: (id) =>
+        set((state) => ({ batchQueue: state.batchQueue.filter((i) => i.id !== id) })),
+
     }),
     {
       name: "instascrape-studio-active-state",
@@ -390,6 +471,7 @@ export const useAppStore = create<AppState>()(
       partialize: (state) => ({
         settings: state.settings,
         aspectRatio: state.aspectRatio,
+        activeTemplateId: state.activeTemplateId,
         urls: state.urls,
         batchName: state.batchName,
         selectedSavedUrlIds: state.selectedSavedUrlIds,

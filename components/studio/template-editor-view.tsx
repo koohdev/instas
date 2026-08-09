@@ -352,7 +352,7 @@ export function TemplateEditorView({ template, onBack }: TemplateEditorViewProps
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div className="grid gap-2">
                         <div className="flex justify-between">
-                          <Label className="text-xs font-semibold">Card Radius ({formData.borderRadius ?? 12}px)</Label>
+                          <Label className="text-xs font-semibold">Screenshot Card Radius ({formData.borderRadius ?? 12}px)</Label>
                         </div>
                         <Slider
                           value={[formData.borderRadius ?? 12]}
@@ -374,6 +374,67 @@ export function TemplateEditorView({ template, onBack }: TemplateEditorViewProps
                           step={1}
                           onValueChange={(val: any) => handleChange("blurAmount", Array.isArray(val) ? val[0] : val)}
                         />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                      <div className="grid gap-2">
+                        <div className="flex justify-between">
+                          <Label className="text-xs font-semibold">Outer Card Padding ({formData.cardPadding ?? 40}px)</Label>
+                        </div>
+                        <Slider
+                          value={[formData.cardPadding ?? 40]}
+                          min={0}
+                          max={80}
+                          step={2}
+                          onValueChange={(val: any) => handleChange("cardPadding", Array.isArray(val) ? val[0] : val)}
+                        />
+                      </div>
+
+                      <div className="grid gap-2">
+                        <div className="flex justify-between">
+                          <Label className="text-xs font-semibold">Inner Card Radius ({formData.cardBorderRadius ?? 28}px)</Label>
+                        </div>
+                        <Slider
+                          value={[formData.cardBorderRadius ?? 28]}
+                          min={0}
+                          max={48}
+                          step={2}
+                          onValueChange={(val: any) => handleChange("cardBorderRadius", Array.isArray(val) ? val[0] : val)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2 pt-2">
+                      <Label className="text-xs font-semibold">Frame Outer Background Color</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="text"
+                          value={formData.cardOuterBg || "#0C1014"}
+                          onChange={(e) => handleChange("cardOuterBg", e.target.value)}
+                          className="h-8 text-xs font-mono w-28 bg-muted/20"
+                        />
+                        <div className="flex items-center gap-1.5">
+                          {[
+                            { label: "Default Dark", hex: "#0C1014" },
+                            { label: "Pure Black", hex: "#000000" },
+                            { label: "Slate", hex: "#0F172A" },
+                            { label: "Zinc", hex: "#18181B" },
+                          ].map((color) => (
+                            <button
+                              key={color.hex}
+                              type="button"
+                              onClick={() => handleChange("cardOuterBg", color.hex)}
+                              className={`w-6 h-6 rounded-full border transition-all cursor-pointer ${
+                                (formData.cardOuterBg || "#0C1014").toLowerCase() === color.hex.toLowerCase()
+                                  ? "ring-2 ring-primary border-white scale-110"
+                                  : "border-white/20 hover:scale-105"
+                              }`}
+                              style={{ backgroundColor: color.hex }}
+                              title={color.label}
+                            />
+                          ))}
+                        </div>
                       </div>
                     </div>
 

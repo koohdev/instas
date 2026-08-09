@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Upload, Trash2, Check, Image as ImageIcon, Sparkles, Play, Search } from "lucide-react";
+import { Upload, Trash2, Check, Image as ImageIcon, Play, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,9 +18,10 @@ export function BackgroundsManager({ activeBackground, onSelectBackground }: Bac
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const fetchData = store.fetchData;
   useEffect(() => {
-    store.fetchData();
-  }, []);
+    fetchData();
+  }, [fetchData]);
 
   const handleFileUpload = async (files: FileList | File[] | null) => {
     if (!files || files.length === 0) return;

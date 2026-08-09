@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Check, Image as ImageIcon } from "lucide-react";
+import { motion } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 
 interface BackgroundSelectorModalProps {
@@ -42,12 +43,15 @@ export function BackgroundSelectorModal({ open, onOpenChange, selectedFilename, 
               {store.backgroundList.map((bg) => {
                 const isSelected = selectedFilename === bg.filename;
                 return (
-                  <div
+                  <motion.div
                     key={bg.id}
                     onClick={() => handleChoose(bg.filename)}
-                    className={`group relative flex flex-col rounded-xl border-2 overflow-hidden cursor-pointer transition-all active:scale-[0.98] ${
+                    whileHover={{ scale: 1.03, y: -3 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className={`group relative flex flex-col rounded-xl border-2 overflow-hidden cursor-pointer transition-colors active:scale-[0.98] ${
                       isSelected
-                        ? "border-primary ring-2 ring-primary/40 shadow-2xl scale-[1.01] bg-primary/10"
+                        ? "border-primary ring-2 ring-primary/40 shadow-2xl bg-primary/10"
                         : "border-border/80 hover:border-primary/60 hover:shadow-lg bg-card"
                     }`}
                   >
@@ -59,18 +63,30 @@ export function BackgroundSelectorModal({ open, onOpenChange, selectedFilename, 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 rounded-t-xl"
                       />
                       {isSelected && (
-                        <div className="absolute top-2.5 right-2.5 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center gap-1 shadow-lg z-10">
+                        <motion.div
+                          layoutId="bg-selected-ring"
+                          className="absolute top-2.5 right-2.5 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center gap-1 shadow-lg z-10"
+                        >
                           <Check className="w-3.5 h-3.5 stroke-[3]" /> Active Background
-                        </div>
+                        </motion.div>
                       )}
                     </div>
+
+                    {/* Hover label overlay */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      whileHover={{ opacity: 1 }}
+                      className="absolute inset-0 bg-black/40 flex items-end pointer-events-none rounded-xl"
+                    >
+                      <span className="text-white text-[11px] font-bold px-3 pb-3 truncate">{bg.name}</span>
+                    </motion.div>
 
                     {/* Card Footer Label */}
                     <div className="p-3.5 bg-card flex flex-col border-t border-border/40">
                       <span className="text-xs font-bold text-foreground truncate leading-tight">{bg.name}</span>
                       <span className="text-[10px] text-muted-foreground font-mono truncate mt-0.5">{bg.filename}</span>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>

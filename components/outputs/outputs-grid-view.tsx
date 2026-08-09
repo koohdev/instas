@@ -21,13 +21,44 @@ import type { OutputBatchItem } from "@/app/api/outputs/route";
 
 interface OutputsGridViewProps {
   items: OutputBatchItem[];
+  loading?: boolean;
   onSelectBatch: (item: OutputBatchItem) => void;
   onUpdateStatus: (folderName: string, status: "not_posted" | "posted" | "scheduled", scheduledDate?: string) => void;
   onDelete: (folderName: string) => void;
 }
 
+// Shimmer skeleton card for loading state
+function SkeletonCard() {
+  return (
+    <div className="flex flex-col p-3 gap-3 rounded-2xl border border-border/50 bg-card overflow-hidden">
+      {/* Cover skeleton */}
+      <div className="relative aspect-[4/5] w-full rounded-xl bg-muted/60 overflow-hidden">
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.6s_infinite] bg-gradient-to-r from-transparent via-white/6 to-transparent" />
+        {/* Top badge stubs */}
+        <div className="absolute top-2.5 inset-x-2.5 flex items-center justify-between">
+          <div className="h-4 w-12 rounded-full bg-white/10 animate-pulse" />
+          <div className="h-4 w-14 rounded-full bg-white/10 animate-pulse" />
+        </div>
+      </div>
+      {/* Text stubs */}
+      <div className="flex flex-col gap-2 mt-1">
+        <div className="h-3 w-3/4 rounded bg-muted/80 animate-pulse" />
+        <div className="h-2.5 w-1/3 rounded bg-muted/60 animate-pulse" />
+      </div>
+      {/* Status pill stub */}
+      <div className="h-7 w-full rounded-lg bg-muted/60 animate-pulse mt-1" />
+      {/* Action stubs */}
+      <div className="flex gap-2 mt-1">
+        <div className="h-6 flex-1 rounded-md bg-muted/60 animate-pulse" />
+        <div className="h-6 flex-1 rounded-md bg-muted/50 animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
 export function OutputsGridView({
   items,
+  loading = false,
   onSelectBatch,
   onUpdateStatus,
   onDelete,
@@ -41,6 +72,17 @@ export function OutputsGridView({
       body: JSON.stringify({ folderName }),
     }).catch(() => {});
   };
+
+  // Loading skeleton state
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -62,6 +104,14 @@ export function OutputsGridView({
         const coverUrl = item.coverImage
           ? `/api/outputs/image?folder=${encodeURIComponent(item.folderName)}&file=${encodeURIComponent(item.coverImage)}`
           : "";
+        // Slide 2 and 3 URLs for fan-out layers
+        const slide2Url = item.slides[1]
+          ? `/api/outputs/image?folder=${encodeURIComponent(item.folderName)}&file=${encodeURIComponent(item.slides[1])}`
+          : coverUrl;
+        const slide3Url = item.slides[2]
+          ? `/api/outputs/image?folder=${encodeURIComponent(item.folderName)}&file=${encodeURIComponent(item.slides[2])}`
+          : coverUrl;
+        const hasMultipleSlides = item.slideCount > 1;
 
         const dateStr = new Date(item.createdAt).toLocaleDateString("en-US", {
           month: "short",
@@ -72,18 +122,52 @@ export function OutputsGridView({
         return (
           <Card
             key={item.folderName}
-            className="group relative flex flex-col p-3 gap-3 overflow-hidden border border-border/70 bg-card hover:border-border transition-all duration-200"
+            className="group relative flex flex-col p-3 gap-3 overflow-visible border border-border/70 bg-card hover:border-border transition-all duration-200"
           >
-            {/* Inner Cover Card Frame */}
+            {/* ═══════════════════════════════════════════ */}
+            {/* 3D STACKED CARD DECK (multi-slide only)    */}
+            {/* ═══════════════════════════════════════════ */}
+
+            {/* Ghost layer 3 — furthest back */}
+            {hasMultipleSlides && (
+              <div
+                className="absolute inset-x-3 top-3 aspect-[4/5] rounded-xl overflow-hidden border border-border/50 bg-muted/20 z-[-2] shadow-sm
+                  translate-x-[6px] translate-y-[6px] rotate-[2.5deg] scale-[0.97]
+                  group-hover:translate-x-[18px] group-hover:rotate-[5deg] group-hover:translate-y-[2px]
+                  transition-all duration-300 ease-out pointer-events-none"
+              >
+                {slide3Url && (
+                  <img src={slide3Url} alt="Slide 3" className="w-full h-full object-cover opacity-60" />
+                )}
+              </div>
+            )}
+
+            {/* Ghost layer 2 — middle */}
+            {hasMultipleSlides && (
+              <div
+                className="absolute inset-x-3 top-3 aspect-[4/5] rounded-xl overflow-hidden border border-border/60 bg-muted/30 z-[-1] shadow-md
+                  translate-x-[3px] translate-y-[3px] rotate-[1.2deg] scale-[0.98]
+                  group-hover:translate-x-[9px] group-hover:rotate-[2.5deg] group-hover:translate-y-[1px]
+                  transition-all duration-300 ease-out pointer-events-none"
+              >
+                {slide2Url && (
+                  <img src={slide2Url} alt="Slide 2" className="w-full h-full object-cover opacity-75" />
+                )}
+              </div>
+            )}
+
+            {/* Main cover card — z-10, lifts up on hover */}
             <div
               onClick={() => onSelectBatch(item)}
-              className="relative aspect-[4/5] w-full rounded-xl border border-border/60 bg-muted/40 overflow-hidden cursor-pointer flex items-center justify-center shadow-xs"
+              className="relative aspect-[4/5] w-full rounded-xl border border-border/60 bg-muted/40 overflow-hidden cursor-pointer flex items-center justify-center shadow-xl
+                group-hover:-translate-y-1 group-hover:shadow-2xl
+                transition-all duration-300 ease-out z-10"
             >
               {coverUrl ? (
                 <img
                   src={coverUrl}
                   alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
                 />
               ) : (
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">

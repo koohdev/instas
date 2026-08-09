@@ -19,18 +19,6 @@ function getPossibleOutputRoots() {
   return roots;
 }
 
-// Simple CRC-32 for ZIP archive integrity
-function crc32(buf: Buffer): number {
-  let crc = -1;
-  for (let i = 0; i < buf.length; i++) {
-    const byte = buf[i];
-    for (let j = 0; j < 8; j++) {
-      const bit = (crc ^ byte) & 1;
-      crc = (crc >>> 1) ^ (bit ? 0xedb88320 : 0);
-    }
-  }
-  return (crc ^ -1) >>> 0;
-}
 
 interface ZipFileItem {
   filename: string;
@@ -193,8 +181,9 @@ export async function GET(req: NextRequest) {
         "Cache-Control": "no-cache",
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to create ZIP download";
     console.error("ZIP Generation error:", err);
-    return NextResponse.json({ error: err.message || "Failed to create ZIP download" }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

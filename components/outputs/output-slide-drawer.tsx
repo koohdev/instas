@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,9 @@ import {
   Layers,
   Sparkles,
   Download,
+  Link2,
+  Hash,
+  FileText,
 } from "lucide-react";
 import type { OutputBatchItem } from "@/app/api/outputs/route";
 
@@ -29,6 +32,54 @@ interface OutputSlideDrawerProps {
   onOpenChange: (open: boolean) => void;
   onUpdateStatus: (folderName: string, status: "not_posted" | "posted" | "scheduled", scheduledDate?: string) => void;
   onDelete: (folderName: string) => void;
+}
+
+/** Derive Instagram caption + hashtags from item metadata */
+function buildCaption(item: OutputBatchItem): { caption: string; hashtags: string } {
+  const titleLower = (item.title + " " + (item.category || "")).toLowerCase();
+
+  const bullets = [
+    `• ${item.title} — curated breakdown`,
+    `• ${item.slideCount} slides packed with design insights you can use today`,
+    `• Save this post & share it with someone building their next project`,
+  ];
+
+  const caption = `${item.title}\n\n${bullets.join("\n")}\n\nSwipe through all ${item.slideCount} slides >`;
+
+  // Comprehensive design & web dev hashtag pool
+  const coreTags = [
+    "#framer",
+    "#framertemplates",
+    "#landingpage",
+    "#webdesign",
+    "#designresources",
+    "#craftwork",
+    "#portfolio",
+    "#websitetemplate",
+    "#uiux",
+    "#startupdesign",
+    "#agencywebsite",
+    "#nocode",
+    "#webdevelopment",
+    "#freelancedesigner",
+    "#designinspiration",
+    "#framermotion",
+    "#websitedesign",
+    "#creativeassets",
+    "#designtools",
+    "#digitaldesign",
+  ];
+
+  // Specific contextual tags based on category or title
+  const contextualSet = new Set<string>(coreTags);
+
+  if (item.category) {
+    const cleanCat = `#${item.category.toLowerCase().replace(/[\s-]+/g, "").replace(/[^a-z0-9]/g, "")}`;
+    if (cleanCat.length > 1) contextualSet.add(cleanCat);
+  }
+
+  const hashtags = Array.from(contextualSet).join(" ");
+  return { caption, hashtags };
 }
 
 export function OutputSlideDrawer({
@@ -41,6 +92,8 @@ export function OutputSlideDrawer({
   const [activeSlideIdx, setActiveSlideIdx] = useState(0);
   const [copiedPath, setCopiedPath] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [copiedCaption, setCopiedCaption] = useState(false);
+  const [copiedShareLink, setCopiedShareLink] = useState(false);
 
   if (!item) return null;
 
@@ -62,6 +115,22 @@ export function OutputSlideDrawer({
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  const { caption, hashtags } = buildCaption(item);
+  const fullCaptionText = `${caption}\n\n${hashtags}`;
+
+  const handleCopyCaption = () => {
+    navigator.clipboard.writeText(fullCaptionText);
+    setCopiedCaption(true);
+    setTimeout(() => setCopiedCaption(false), 2000);
+  };
+
+  const handleShareLink = () => {
+    const shareUrl = `${window.location.origin}/outputs?folder=${encodeURIComponent(item.folderName)}`;
+    navigator.clipboard.writeText(shareUrl);
+    setCopiedShareLink(true);
+    setTimeout(() => setCopiedShareLink(false), 2000);
+  };
 
   return (
     <>
@@ -192,7 +261,7 @@ export function OutputSlideDrawer({
                 </div>
               </div>
 
-              {/* Thumbnails Row (p-1.5 padding ensures selection ring is never cut off) */}
+              {/* Thumbnails Row */}
               <div className="flex items-center gap-2.5 overflow-x-auto p-1.5 max-w-full">
                 {item.slides.map((s, idx) => {
                   const thumbUrl = `/api/outputs/image?folder=${encodeURIComponent(item.folderName)}&file=${encodeURIComponent(s)}`;
@@ -214,6 +283,51 @@ export function OutputSlideDrawer({
                   );
                 })}
               </div>
+            </div>
+
+            {/* ══════════════════════════════════════════════════════ */}
+            {/* AUTO-GENERATED INSTAGRAM CAPTION BOX                 */}
+            {/* ══════════════════════════════════════════════════════ */}
+            <div className="flex flex-col gap-3 bg-gradient-to-br from-pink-500/5 via-purple-500/5 to-blue-500/5 p-3.5 rounded-xl border border-pink-500/20">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                  <div className="w-5 h-5 rounded-md bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 flex items-center justify-center">
+                    <FileText className="w-3 h-3 text-white" />
+                  </div>
+                  Auto-Generated Instagram Caption
+                </div>
+                <Badge variant="outline" className="text-[9px] border-pink-500/30 text-pink-400/80">
+                  AI Draft
+                </Badge>
+              </div>
+
+              {/* Caption preview box */}
+              <div className="bg-background/60 border border-border/50 rounded-lg p-3 text-xs text-foreground/80 leading-relaxed font-normal whitespace-pre-wrap select-text">
+                {caption}
+              </div>
+
+              {/* Hashtags */}
+              <div className="flex items-start gap-2">
+                <Hash className="w-3.5 h-3.5 text-blue-400 mt-0.5 shrink-0" />
+                <div className="text-[11px] text-blue-400/90 font-medium leading-relaxed">
+                  {hashtags}
+                </div>
+              </div>
+
+              {/* Copy Caption button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyCaption}
+                className="w-full h-8 text-xs font-semibold gap-2 border-pink-500/30 text-pink-400 hover:bg-pink-500/10 hover:text-pink-300 cursor-pointer active:scale-[0.97] transition-all"
+              >
+                {copiedCaption ? (
+                  <><Check className="w-3.5 h-3.5 text-emerald-400" /> Caption Copied!</>
+                ) : (
+                  <><Copy className="w-3.5 h-3.5" /> Copy Caption &amp; Hashtags</>
+                )}
+              </Button>
             </div>
 
             {/* Folder & Path Details */}
@@ -261,6 +375,53 @@ export function OutputSlideDrawer({
                   {copiedPath ? "Copied Path" : "Copy Path"}
                 </Button>
               </div>
+            </div>
+          </div>
+
+          {/* ══════════════════════════════════════════════════════ */}
+          {/* ONE-CLICK CTA BAR (sticky above footer)              */}
+          {/* ══════════════════════════════════════════════════════ */}
+          <div className="px-4 py-3 border-t border-border/40 bg-gradient-to-r from-muted/20 via-card to-muted/20">
+            <div className="grid grid-cols-3 gap-2">
+              {/* Copy Caption */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyCaption}
+                className="h-9 text-xs font-semibold gap-1.5 cursor-pointer active:scale-[0.97] transition-all"
+              >
+                {copiedCaption ? (
+                  <><Check className="w-3.5 h-3.5 text-emerald-400" /> Copied!</>
+                ) : (
+                  <><Copy className="w-3.5 h-3.5" /> Copy Caption</>
+                )}
+              </Button>
+
+              {/* Download All Slides — primary CTA */}
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => {
+                  window.location.href = `/api/outputs/download?folder=${encodeURIComponent(item.folderName)}`;
+                }}
+                className="h-9 text-xs font-bold gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white shadow-md cursor-pointer active:scale-[0.97] transition-all"
+              >
+                <Download className="w-3.5 h-3.5" /> Download All (.zip)
+              </Button>
+
+              {/* Share Link */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShareLink}
+                className="h-9 text-xs font-semibold gap-1.5 cursor-pointer active:scale-[0.97] transition-all"
+              >
+                {copiedShareLink ? (
+                  <><Check className="w-3.5 h-3.5 text-emerald-400" /> Link Copied!</>
+                ) : (
+                  <><Link2 className="w-3.5 h-3.5" /> Share Link</>
+                )}
+              </Button>
             </div>
           </div>
 
