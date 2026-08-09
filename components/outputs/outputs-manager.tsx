@@ -215,11 +215,11 @@ export function OutputsManager() {
         {/* Divider */}
         <div className="w-px h-6 bg-border/50 shrink-0" />
 
-        {/* Status Filter Pills – evenly fill the remaining space */}
-        <div className="flex items-center gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 flex-1 min-w-0">
+        {/* Status Filter Pills – auto width, not stretched */}
+        <div className="flex items-center gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
           <button
             onClick={() => { playClick(); setStatusFilter("all"); }}
-            className={`flex-1 text-xs font-semibold px-2 py-1 rounded-md transition-all cursor-pointer text-center ${
+            className={`flex-none text-xs font-semibold px-3 py-1 rounded-md transition-all cursor-pointer ${
               statusFilter === "all" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -227,41 +227,38 @@ export function OutputsManager() {
           </button>
           <button
             onClick={() => { playClick(); setStatusFilter("not_posted"); }}
-            className={`flex-1 text-xs font-semibold px-2 py-1 rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer ${
+            className={`flex-none text-xs font-semibold px-3 py-1 rounded-md transition-all inline-flex items-center gap-1 cursor-pointer ${
               statusFilter === "not_posted" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Circle className="w-3 h-3 opacity-60 shrink-0" />
-            <span>Not Posted ({notPostedCount})</span>
+            <Circle className="w-3 h-3 opacity-60" /> Not Posted ({notPostedCount})
           </button>
           <button
             onClick={() => { playClick(); setStatusFilter("posted"); }}
-            className={`flex-1 text-xs font-semibold px-2 py-1 rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer ${
+            className={`flex-none text-xs font-semibold px-3 py-1 rounded-md transition-all inline-flex items-center gap-1 cursor-pointer ${
               statusFilter === "posted" ? "bg-emerald-600 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <CheckCircle2 className="w-3 h-3 shrink-0" />
-            <span>Posted ({postedCount})</span>
+            <CheckCircle2 className="w-3 h-3" /> Posted ({postedCount})
           </button>
           <button
             onClick={() => { playClick(); setStatusFilter("scheduled"); }}
-            className={`flex-1 text-xs font-semibold px-2 py-1 rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer ${
+            className={`flex-none text-xs font-semibold px-3 py-1 rounded-md transition-all inline-flex items-center gap-1 cursor-pointer ${
               statusFilter === "scheduled" ? "bg-blue-600 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Clock className="w-3 h-3 shrink-0" />
-            <span>Scheduled ({scheduledCount})</span>
+            <Clock className="w-3 h-3" /> Scheduled ({scheduledCount})
           </button>
         </div>
 
-        {/* Divider */}
-        <div className="w-px h-6 bg-border/50 shrink-0" />
+        {/* Spacer pushes sort+views to the right */}
+        <div className="flex-1" />
 
         {/* Sort Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger className="shrink-0 inline-flex items-center justify-center rounded-md border border-border/80 bg-background hover:bg-muted text-foreground h-8 px-3 text-xs font-medium gap-1.5 cursor-pointer">
             <ArrowUpDown className="w-3.5 h-3.5" />
-            <span className="capitalize hidden sm:inline">{sortBy}</span>
+            <span className="capitalize">{sortBy}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-36">
             <DropdownMenuItem onClick={() => setSortBy("newest")}>Newest First</DropdownMenuItem>
@@ -271,8 +268,8 @@ export function OutputsManager() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* View Mode Icons */}
-        <div className="flex items-center gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
+        {/* View Mode Icons – same h-8 height as sort */}
+        <div className="flex items-center h-8 gap-0.5 bg-muted/60 px-0.5 rounded-lg border border-border/50 shrink-0">
           <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("grid"); }} title="Grid View" className="size-7">
             <LayoutGrid className="w-3.5 h-3.5" />
           </Button>
