@@ -69,7 +69,7 @@ export default async function RenderPage({ searchParams }: PageProps) {
         <meta charSet="UTF-8" />
         {/* System font preload */}
         <style>{`
-          * { box-sizing: border-box; margin: 0; padding: 0; }
+          * { box-sizing: border-box; margin: 0; padding: 0; transition: none !important; animation: none !important; }
           body { background: #0d0d0d; overflow: hidden; }
           ${fontFaceCSS}
         `}</style>
