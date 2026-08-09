@@ -1,0 +1,3 @@
+## 2024-08-09 - Missing ARIA Labels on Navigation Arrows
+**Learning:** Icon-only navigation buttons (like chevron left/right for calendars and slides) frequently miss accessible labels, which makes screen readers unable to convey their purpose to visually impaired users. Even when tooltips or surrounding context exist, explicit aria-labels on interactive elements are necessary for proper navigation flow.
+**Action:** Always add descriptive `aria-label`s to `<Button>` components that rely solely on icons to convey their action (e.g., `aria-label="Previous month"`, `aria-label="Next slide"`).
