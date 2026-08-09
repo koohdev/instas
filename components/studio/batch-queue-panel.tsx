@@ -37,23 +37,10 @@ function StatusBadge({ status }: { status: BatchQueueItem["status"] }) {
 
 export function BatchQueuePanel() {
   const store = useAppStore();
-  const [urlsInput, setUrlsInput] = useState("");
-  const [batchNameInput, setBatchNameInput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
 
   const hasPending = store.batchQueue.some((i) => i.status === "pending");
   const hasItems = store.batchQueue.length > 0;
-
-  const handleAddBatch = () => {
-    const urls = urlsInput
-      .split("\n")
-      .map((u) => u.trim())
-      .filter(Boolean);
-    if (urls.length === 0) return;
-    store.enqueueBatch(urls, batchNameInput || "");
-    setUrlsInput("");
-    setBatchNameInput("");
-  };
 
   const handleRunQueue = async () => {
     setIsRunning(true);
@@ -89,46 +76,6 @@ export function BatchQueuePanel() {
                 <Trash2 className="w-3 h-3" /> Clear All
               </Button>
             )}
-          </div>
-
-          {/* Add New Batch Form */}
-          <div className="flex flex-col gap-3 p-3 bg-muted/30 rounded-xl border border-border/50">
-            <Label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Add New Batch</Label>
-
-            <div className="grid gap-1.5">
-              <Label className="text-[11px] font-semibold text-foreground">Batch Name (Optional)</Label>
-              <Input
-                placeholder="e.g. Design-Tools-Sept-2025"
-                value={batchNameInput}
-                onChange={(e) => setBatchNameInput(e.target.value)}
-                className="h-8 text-xs"
-              />
-            </div>
-
-            <div className="grid gap-1.5">
-              <Label className="text-[11px] font-semibold text-foreground">
-                Source URLs <span className="text-muted-foreground font-normal">(one per line)</span>
-              </Label>
-              <Textarea
-                rows={4}
-                placeholder={"https://example.com/article-1\nhttps://example.com/article-2\nhttps://example.com/article-3"}
-                value={urlsInput}
-                onChange={(e) => setUrlsInput(e.target.value)}
-                className="font-mono text-xs bg-muted/20 border-border resize-none"
-              />
-              <p className="text-[10px] text-muted-foreground">
-                {urlsInput.split("\n").filter((u) => u.trim()).length} URL(s) → 1 carousel (cover + content slides)
-              </p>
-            </div>
-
-            <Button
-              size="sm"
-              onClick={handleAddBatch}
-              disabled={!urlsInput.trim()}
-              className="h-8 text-xs gap-1.5 w-full"
-            >
-              <Plus className="w-3.5 h-3.5" /> Add to Queue
-            </Button>
           </div>
 
           {/* Queue List */}
@@ -219,7 +166,7 @@ export function BatchQueuePanel() {
           {!hasItems && (
             <div className="py-8 flex flex-col items-center justify-center gap-2 text-center border border-dashed border-border/50 rounded-xl">
               <List className="w-8 h-8 text-muted-foreground/30" />
-              <p className="text-xs text-muted-foreground">No items in queue. Add a batch above.</p>
+              <p className="text-xs text-muted-foreground">No items in queue. Add URLs from the URL Library.</p>
             </div>
           )}
         </div>

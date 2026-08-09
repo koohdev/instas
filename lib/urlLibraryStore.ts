@@ -1,4 +1,5 @@
 import fs from "fs";
+import { promises as fsPromises } from "fs";
 import path from "path";
 
 export interface SavedUrlItem {
@@ -8,6 +9,7 @@ export interface SavedUrlItem {
   category: string;
   tags: string[];
   createdAt: string;
+  status?: "pending" | "processed";
 }
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -56,20 +58,25 @@ const DEFAULT_SAVED_URLS: SavedUrlItem[] = [
   },
 ];
 
-function ensureDataDir(): void {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+async function ensureDataDir(): Promise<void> {
+  try {
+    await fsPromises.access(DATA_DIR);
+  } catch {
+    await fsPromises.mkdir(DATA_DIR, { recursive: true });
   }
 }
 
-export function loadUrlLibrary(): SavedUrlItem[] {
-  ensureDataDir();
-  if (!fs.existsSync(URL_LIBRARY_FILE)) {
-    saveUrlLibrary(DEFAULT_SAVED_URLS);
+export async function loadUrlLibrary(): Promise<SavedUrlItem[]> {
+  await ensureDataDir();
+  try {
+    await fsPromises.access(URL_LIBRARY_FILE);
+  } catch {
+    await saveUrlLibrary(DEFAULT_SAVED_URLS);
     return DEFAULT_SAVED_URLS;
   }
+
   try {
-    const raw = fs.readFileSync(URL_LIBRARY_FILE, "utf-8");
+    const raw = await fsPromises.readFile(URL_LIBRARY_FILE, "utf-8");
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_SAVED_URLS;
   } catch {
@@ -77,7 +84,7 @@ export function loadUrlLibrary(): SavedUrlItem[] {
   }
 }
 
-export function saveUrlLibrary(items: SavedUrlItem[]): void {
-  ensureDataDir();
-  fs.writeFileSync(URL_LIBRARY_FILE, JSON.stringify(items, null, 2), "utf-8");
+export async function saveUrlLibrary(items: SavedUrlItem[]): Promise<void> {
+  await ensureDataDir();
+  await fsPromises.writeFile(URL_LIBRARY_FILE, JSON.stringify(items, null, 2), "utf-8");
 }
