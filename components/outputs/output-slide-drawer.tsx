@@ -241,6 +241,7 @@ export function OutputSlideDrawer({
                         size="icon-sm"
                         onClick={handlePrev}
                         className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur hover:bg-background opacity-80 hover:opacity-100 transition-opacity"
+                        aria-label="Previous slide"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </Button>
@@ -249,6 +250,7 @@ export function OutputSlideDrawer({
                         size="icon-sm"
                         onClick={handleNext}
                         className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur hover:bg-background opacity-80 hover:opacity-100 transition-opacity"
+                        aria-label="Next slide"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </Button>
