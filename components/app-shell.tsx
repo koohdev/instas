@@ -158,7 +158,12 @@ export function AppShell({ activeRoute }: AppShellProps) {
                     ) : (
                       <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_480px] 2xl:grid-cols-[1fr_540px] gap-8 w-full items-start">
                         <div className="flex flex-col gap-6 w-full">
-                          <StudioConfigurator />
+                          <StudioConfigurator
+                            studioViewMode={studioViewMode}
+                            onStudioViewModeChange={setStudioViewMode}
+                            onOpenStagingDrawer={() => setIsAssetDrawerOpen(true)}
+                            onOpenPresetDialog={() => setIsPresetDialogOpen(true)}
+                          />
                           <GenerationStatus />
                         </div>
                         <GenerationPreview status="idle" />

@@ -30,10 +30,6 @@ interface SiteHeaderProps {
 export function SiteHeader({
   activeTab,
   urlCount = 0,
-  studioViewMode = "form",
-  onStudioViewModeChange,
-  onOpenStagingDrawer,
-  onOpenPresetDialog,
 }: SiteHeaderProps) {
   const titleMap: Record<string, string> = {
     outputs: "Outputs Gallery & Scheduler",
@@ -82,52 +78,6 @@ export function SiteHeader({
               {urlCount} staged
             </Badge>
           )}
-        </div>
-
-        {/* Right: Quick Action Controls */}
-        <div className="flex items-center gap-2">
-          {/* Node Canvas Toggle Button (Right Side) */}
-          {activeTab === "studio" && (
-            <Button
-              variant={studioViewMode === "canvas" ? "default" : "outline"}
-              size="sm"
-              onClick={() =>
-                onStudioViewModeChange?.(studioViewMode === "canvas" ? "form" : "canvas")
-              }
-              className={`gap-1.5 text-xs font-semibold h-8 px-2.5 sm:px-3 cursor-pointer active:scale-[0.97] transition-all ${
-                studioViewMode === "canvas"
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-              title={
-                studioViewMode === "canvas" ? "Return to Form View" : "Switch to Node Canvas View"
-              }
-            >
-              <Network className="w-3.5 h-3.5" />
-              <span>Node Canvas</span>
-            </Button>
-          )}
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onOpenStagingDrawer}
-            className="gap-1.5 text-xs border-primary/30 text-primary hover:bg-primary/10 font-medium h-8 px-2.5 sm:px-3 cursor-pointer active:scale-[0.97] transition-all"
-            title="Open Staging Drawer"
-          >
-            <Bookmark className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Staging</span>
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onOpenPresetDialog}
-            className="gap-1.5 text-xs font-medium h-8 px-2.5 sm:px-3 cursor-pointer active:scale-[0.97] transition-all"
-            title="Save Current Settings as Template"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-primary" />{" "}
-            <span className="hidden sm:inline">Save Template</span>
-          </Button>
         </div>
       </div>
     </header>

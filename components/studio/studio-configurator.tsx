@@ -1,5 +1,26 @@
+"use client";
+
 import { useState } from "react";
-import { CheckCheck, Sparkles, RotateCcw, Sliders, Type, LayoutGrid, Smartphone, Square, RectangleHorizontal, Monitor, FileText, Maximize2 } from "lucide-react";
+import {
+  CheckCheck,
+  Sparkles,
+  Sliders,
+  Type,
+  LayoutGrid,
+  Smartphone,
+  Square,
+  RectangleHorizontal,
+  Monitor,
+  FileText,
+  Maximize2,
+  Network,
+  Bookmark,
+  Globe,
+  Palette,
+  Layers,
+  Wand2,
+  FolderPlus,
+} from "lucide-react";
 import { Frame, FramePanel } from "@/components/ui/frame";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,18 +28,31 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { useAppStore } from "@/lib/store";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { sanitizeUrls } from "@/utils/url-sanitizer";
 import type { AspectRatio } from "@/lib/types";
 import { FontSelectorModal } from "./font-selector-modal";
 
-export function StudioConfigurator() {
+interface StudioConfiguratorProps {
+  studioViewMode?: "form" | "canvas";
+  onStudioViewModeChange?: (mode: "form" | "canvas") => void;
+  onOpenStagingDrawer?: () => void;
+  onOpenPresetDialog?: () => void;
+}
+
+export function StudioConfigurator({
+  studioViewMode = "form",
+  onStudioViewModeChange,
+  onOpenStagingDrawer,
+  onOpenPresetDialog,
+}: StudioConfiguratorProps = {}) {
   const store = useAppStore();
+  const { playClick } = useSoundEffects();
+
   const [sanitizedNotice, setSanitizedNotice] = useState(false);
   const [isFontModalOpen, setIsFontModalOpen] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleSanitize = () => {
     if (!store.urls.trim()) return;
@@ -42,73 +76,173 @@ export function StudioConfigurator() {
     }
   };
 
-  const urlList = store.urls.split("\n").map(u => u.trim()).filter(Boolean);
+  const urlList = store.urls.split("\n").map((u) => u.trim()).filter(Boolean);
 
   return (
-    <Frame variant="default" spacing="default">
-      <FramePanel className="gap-6">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-border/40">
-          <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
-            <Sliders className="w-4 h-4 text-primary" /> Studio Configurator
-          </h3>
+    <Frame variant="default" spacing="default" className="w-full">
+      <FramePanel className="gap-6 p-5 sm:p-6">
+        {/* Header with Studio Launchpad Actions */}
+        <div className="flex items-center justify-between pb-4 border-b border-border/50 gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-xs">
+              <Sliders className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold font-heading text-foreground leading-none">
+                  Studio Configurator
+                </h3>
+                <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-mono font-bold px-2 py-0.5">
+                  {urlList.length} URL{urlList.length === 1 ? "" : "s"} Staged
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                Configure input sources, cover typography, platform ratios, and frame padding.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant={studioViewMode === "canvas" ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                playClick();
+                onStudioViewModeChange?.(studioViewMode === "canvas" ? "form" : "canvas");
+              }}
+              className={`gap-1.5 text-xs font-bold h-8 px-3 cursor-pointer active:scale-[0.97] transition-all ${
+                studioViewMode === "canvas"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              title={studioViewMode === "canvas" ? "Return to Form View" : "Switch to Node Canvas View"}
+            >
+              <Network className="w-3.5 h-3.5" />
+              <span>Node Canvas</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                playClick();
+                onOpenStagingDrawer?.();
+              }}
+              className="gap-1.5 text-xs border-primary/30 text-primary hover:bg-primary/10 font-bold h-8 px-3 cursor-pointer active:scale-[0.97] transition-all"
+              title="Open Staging Drawer"
+            >
+              <Bookmark className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Staging</span>
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                playClick();
+                onOpenPresetDialog?.();
+              }}
+              className="gap-1.5 text-xs font-bold h-8 px-3 cursor-pointer active:scale-[0.97] transition-all"
+              title="Save Current Settings as Template"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
+              <span className="hidden sm:inline">Save Template</span>
+            </Button>
+          </div>
         </div>
 
-        {/* UNIFIED CONTINUOUS FLOW (NO TAB SWITCHING) */}
+        {/* UNIFIED CONTINUOUS STEP FLOW */}
         <div className="flex flex-col gap-6">
-
-          {/* SECTION 1: TARGET WEBPAGE URLS & OUTPUT FOLDER */}
-          <div className="flex flex-col gap-4">
+          {/* STEP 1: TARGET WEBPAGE URLS & BATCH NAME */}
+          <div className="flex flex-col gap-3.5 bg-card/50 p-4 rounded-xl border border-border/60">
             <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  1. Target Webpage URLs
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[11px] font-bold font-mono flex items-center justify-center border border-primary/20">
+                  1
+                </span>
+                <Label className="text-xs font-bold text-foreground">
+                  Target Webpage URLs
                 </Label>
-                <p className="text-[11px] text-muted-foreground">Paste URLs below (one per line). Parameters are sanitized automatically.</p>
               </div>
-              {sanitizedNotice && (
-                <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]">
+
+              {sanitizedNotice ? (
+                <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
                   <CheckCheck className="w-3 h-3 mr-1" /> Cleaned!
                 </Badge>
+              ) : (
+                <span className="text-[11px] font-mono text-muted-foreground">
+                  {urlList.length} line{urlList.length === 1 ? "" : "s"}
+                </span>
               )}
             </div>
 
             <Textarea
-              rows={5}
+              rows={4}
               placeholder={"https://reactbits.dev\nhttps://framer.com"}
               value={store.urls}
               onChange={(e) => store.setUrls(e.target.value)}
               onBlur={handleSanitize}
-              className="font-mono text-base md:text-xs bg-muted/20 border-border"
+              className="font-mono text-xs bg-muted/20 border-border rounded-xl focus:ring-1 focus:ring-primary"
             />
 
-            <div>
-              <Label className="text-xs uppercase font-semibold text-muted-foreground block mb-1.5">
-                Output Folder Name (Optional)
-              </Label>
-              <Input
-                placeholder="e.g. Design-Tools-Worth-Bookmarking"
-                value={store.batchName}
-                onChange={(e) => store.setBatchName(e.target.value)}
-                className="text-base md:text-xs"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div>
+                <Label className="text-[11px] uppercase font-bold text-muted-foreground block mb-1.5 tracking-wider">
+                  Output Folder Name (Optional)
+                </Label>
+                <Input
+                  placeholder="e.g. Design-Tools-Worth-Bookmarking"
+                  value={store.batchName}
+                  onChange={(e) => store.setBatchName(e.target.value)}
+                  className="text-xs h-8 bg-background/80"
+                />
+              </div>
+
+              <div className="flex items-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    playClick();
+                    handleSanitize();
+                  }}
+                  className="h-8 text-xs font-semibold gap-1.5 w-full border-border hover:bg-muted cursor-pointer active:scale-[0.97]"
+                >
+                  <Wand2 className="w-3.5 h-3.5 text-primary" /> Clean Parameters
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* SECTION 2: COVER LAYOUT & TYPOGRAPHY (PLACED DIRECTLY BELOW OUTPUT FOLDER NAME) */}
-          <div className="flex flex-col gap-4 pt-4 border-t border-border/40">
-            <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <Type className="w-3.5 h-3.5 text-primary" /> 2. Cover Layout & Typography
-            </Label>
+          {/* STEP 2: COVER LAYOUT & TYPOGRAPHY */}
+          <div className="flex flex-col gap-3.5 bg-card/50 p-4 rounded-xl border border-border/60">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[11px] font-bold font-mono flex items-center justify-center border border-primary/20">
+                  2
+                </span>
+                <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <Type className="w-3.5 h-3.5 text-primary" /> Cover Layout &amp; Typography
+                </Label>
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label className="text-xs uppercase font-semibold text-muted-foreground">Cover Design Style</Label>
-              <Select
+              <Badge variant="outline" className="text-[10px] font-mono border-primary/30 text-primary">
+                Font: {store.settings.fontFamily || "Inter"}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div className="grid gap-1.5">
+                <Label className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">
+                  Cover Design Style
+                </Label>
+                <Select
                   value={store.settings.coverStyle}
-                  onValueChange={(val) => store.updateSetting("coverStyle", val as "minimal" | "bold" | "modern")}
+                  onValueChange={(val) => {
+                    playClick();
+                    store.updateSetting("coverStyle", val as "minimal" | "bold" | "modern");
+                  }}
                 >
-                  <SelectTrigger className="w-full h-9 text-xs capitalize">
+                  <SelectTrigger className="w-full h-8 text-xs bg-background/80 capitalize">
                     <SelectValue placeholder="Select cover style..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -119,16 +253,21 @@ export function StudioConfigurator() {
                 </Select>
               </div>
 
-              <div className="grid gap-2">
-                <Label className="text-xs uppercase font-semibold text-muted-foreground">Typography & Font Family</Label>
+              <div className="grid gap-1.5">
+                <Label className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">
+                  Typography &amp; Font Family
+                </Label>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setIsFontModalOpen(true)}
-                  className="w-full h-9 text-xs justify-between font-semibold"
+                  onClick={() => {
+                    playClick();
+                    setIsFontModalOpen(true);
+                  }}
+                  className="w-full h-8 text-xs justify-between font-semibold bg-background/80 hover:bg-muted border-border cursor-pointer active:scale-[0.97]"
                 >
-                  <span className="truncate" style={{ fontFamily: `'${store.settings.fontFamily || "Inter"}', sans-serif` }}>
+                  <span className="truncate font-bold" style={{ fontFamily: `'${store.settings.fontFamily || "Inter"}', sans-serif` }}>
                     {store.settings.fontFamily || "Inter"}
                   </span>
                   <Type className="w-3.5 h-3.5 text-primary shrink-0" />
@@ -136,64 +275,85 @@ export function StudioConfigurator() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <Label className="text-xs uppercase font-semibold text-muted-foreground block mb-1.5">Cover Title</Label>
+                <Label className="text-[11px] uppercase font-bold text-muted-foreground block mb-1.5 tracking-wider">
+                  Cover Title
+                </Label>
                 <Input
                   placeholder="Stop making your own components"
                   value={store.settings.coverTitle}
                   onChange={(e) => store.updateSetting("coverTitle", e.target.value)}
+                  className="text-xs h-8 bg-background/80"
                 />
               </div>
+
               <div>
-                <Label className="text-xs uppercase font-semibold text-muted-foreground block mb-1.5">Cover Subtitle</Label>
+                <Label className="text-[11px] uppercase font-bold text-muted-foreground block mb-1.5 tracking-wider">
+                  Cover Subtitle
+                </Label>
                 <Input
                   placeholder="A curated list of UI kits to copy and paste"
                   value={store.settings.coverSubtitle}
                   onChange={(e) => store.updateSetting("coverSubtitle", e.target.value)}
+                  className="text-xs h-8 bg-background/80"
                 />
               </div>
             </div>
           </div>
-          {/* SECTION 3: EXPORT FORMAT & TEMPLATE PRESET */}
-          <div className="flex flex-col gap-4 pt-4 border-t border-border/40">
-            <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <LayoutGrid className="w-3.5 h-3.5 text-primary" /> 3. Export Format &amp; Template
-            </Label>
+
+          {/* STEP 3: EXPORT FORMAT & DESIGN TEMPLATE */}
+          <div className="flex flex-col gap-3.5 bg-card/50 p-4 rounded-xl border border-border/60">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[11px] font-bold font-mono flex items-center justify-center border border-primary/20">
+                3
+              </span>
+              <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <LayoutGrid className="w-3.5 h-3.5 text-primary" /> Platform Format &amp; Design Preset
+              </Label>
+            </div>
 
             {/* FORMAT SWITCHER — 5 platform formats */}
-            <div className="grid gap-2">
-              <Label className="text-xs uppercase font-semibold text-muted-foreground flex items-center gap-1.5">
-                <LayoutGrid className="w-3 h-3" /> Platform Format
+            <div className="grid gap-1.5">
+              <Label className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">
+                Platform Format
               </Label>
-              <div className="grid grid-cols-5 gap-1 p-1 bg-muted/40 rounded-xl border border-border/60">
+              <div className="grid grid-cols-5 gap-1.5 p-1.5 bg-muted/40 rounded-xl border border-border/60">
                 {(([
                   { value: "9:16" as AspectRatio, icon: Smartphone, label: "Story", sub: "9:16" },
                   { value: "1:1" as AspectRatio, icon: Square, label: "Square", sub: "1:1" },
                   { value: "4:5" as AspectRatio, icon: RectangleHorizontal, label: "Feed", sub: "4:5" },
                   { value: "16:9" as AspectRatio, icon: Monitor, label: "X Banner", sub: "16:9" },
                   { value: "linkedin-pdf" as AspectRatio, icon: FileText, label: "LinkedIn", sub: "PDF" },
-                ] as const)).map(({ value, icon: Icon, label, sub }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => store.setAspectRatio(value)}
-                    className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-lg text-center transition-all duration-200 ${
-                      store.aspectRatio === value
-                        ? "bg-primary text-primary-foreground font-bold"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                    }`}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    <span className="text-[9px] font-bold leading-none">{label}</span>
-                    <span className="text-[8px] font-mono opacity-60">{sub}</span>
-                  </button>
-                ))}
+                ] as const)).map(({ value, icon: Icon, label, sub }) => {
+                  const isSelected = store.aspectRatio === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => {
+                        playClick();
+                        store.setAspectRatio(value);
+                      }}
+                      className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg text-center transition-all duration-200 cursor-pointer ${
+                        isSelected
+                          ? "ring-2 ring-inset ring-primary bg-primary text-primary-foreground font-bold shadow-xs"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span className="text-[9.5px] font-bold leading-none">{label}</span>
+                      <span className="text-[8.5px] font-mono opacity-70">{sub}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            <div className="grid gap-2">
-              <Label className="text-xs uppercase font-semibold text-muted-foreground">Design Template Preset</Label>
+            <div className="grid gap-1.5 pt-1">
+              <Label className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">
+                Design Template Preset
+              </Label>
               {(() => {
                 const activeTpl = store.templates.find(
                   (t) => t.id === store.activeTemplateId || t.customBgImage === store.settings.customBgImage
@@ -203,13 +363,14 @@ export function StudioConfigurator() {
                     value={store.activeTemplateId || activeTpl?.id || ""}
                     onValueChange={(tplId) => {
                       if (!tplId) return;
+                      playClick();
                       const found = store.templates.find((t) => t.id === tplId);
                       if (found) {
                         store.applyTemplate(found);
                       }
                     }}
                   >
-                    <SelectTrigger className="w-full h-9 text-xs">
+                    <SelectTrigger className="w-full h-8 text-xs bg-background/80">
                       <SelectValue>
                         {activeTpl ? activeTpl.name : "Select design template preset..."}
                       </SelectValue>
@@ -227,16 +388,21 @@ export function StudioConfigurator() {
             </div>
           </div>
 
-          {/* SECTION 4: CARD FRAMING & PADDING */}
-          <div className="flex flex-col gap-4 pt-4 border-t border-border/40">
-            <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <Maximize2 className="w-3.5 h-3.5 text-primary" /> 4. Card Framing &amp; Padding
-            </Label>
+          {/* STEP 4: CARD FRAMING & PADDING */}
+          <div className="flex flex-col gap-3.5 bg-card/50 p-4 rounded-xl border border-border/60">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[11px] font-bold font-mono flex items-center justify-center border border-primary/20">
+                4
+              </span>
+              <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <Maximize2 className="w-3.5 h-3.5 text-primary" /> Card Framing &amp; Padding Lab
+              </Label>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <div className="flex justify-between items-center">
-                  <Label className="text-xs uppercase font-semibold text-muted-foreground">
+                  <Label className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">
                     Outer Padding ({store.settings.cardPadding ?? 40}px)
                   </Label>
                 </div>
@@ -245,13 +411,16 @@ export function StudioConfigurator() {
                   min={0}
                   max={80}
                   step={2}
-                  onValueChange={(val) => store.updateSetting("cardPadding", Array.isArray(val) ? val[0] : val)}
+                  onValueChange={(val) =>
+                    store.updateSetting("cardPadding", Array.isArray(val) ? val[0] : val)
+                  }
+                  className="cursor-pointer"
                 />
               </div>
 
               <div className="grid gap-2">
                 <div className="flex justify-between items-center">
-                  <Label className="text-xs uppercase font-semibold text-muted-foreground">
+                  <Label className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">
                     Inner Card Radius ({store.settings.cardBorderRadius ?? 28}px)
                   </Label>
                 </div>
@@ -260,13 +429,16 @@ export function StudioConfigurator() {
                   min={0}
                   max={48}
                   step={2}
-                  onValueChange={(val) => store.updateSetting("cardBorderRadius", Array.isArray(val) ? val[0] : val)}
+                  onValueChange={(val) =>
+                    store.updateSetting("cardBorderRadius", Array.isArray(val) ? val[0] : val)
+                  }
+                  className="cursor-pointer"
                 />
               </div>
             </div>
 
-            <div className="grid gap-2">
-              <Label className="text-xs uppercase font-semibold text-muted-foreground">
+            <div className="grid gap-1.5 pt-1">
+              <Label className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">
                 Frame Outer Color
               </Label>
               <div className="flex items-center gap-2">
@@ -274,7 +446,7 @@ export function StudioConfigurator() {
                   type="text"
                   value={store.settings.cardOuterBg || "#0C1014"}
                   onChange={(e) => store.updateSetting("cardOuterBg", e.target.value)}
-                  className="h-8 text-xs font-mono w-28 bg-muted/20"
+                  className="h-8 text-xs font-mono w-28 bg-background/80"
                 />
                 <div className="flex items-center gap-1.5">
                   {[
@@ -286,7 +458,10 @@ export function StudioConfigurator() {
                     <button
                       key={color.hex}
                       type="button"
-                      onClick={() => store.updateSetting("cardOuterBg", color.hex)}
+                      onClick={() => {
+                        playClick();
+                        store.updateSetting("cardOuterBg", color.hex);
+                      }}
                       className={`w-6 h-6 rounded-full border transition-all cursor-pointer ${
                         (store.settings.cardOuterBg || "#0C1014").toLowerCase() === color.hex.toLowerCase()
                           ? "ring-2 ring-primary border-white scale-110"
@@ -300,8 +475,6 @@ export function StudioConfigurator() {
               </div>
             </div>
           </div>
-
-
         </div>
       </FramePanel>
 

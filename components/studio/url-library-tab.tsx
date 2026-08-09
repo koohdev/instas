@@ -1,13 +1,48 @@
+"use client";
+
 import { useState, useMemo } from "react";
-import { Database, Play, Plus, Search, Check, Trash2, CheckCircle2, Clock, RotateCcw, CheckSquare, Square } from "lucide-react";
+import {
+  Database,
+  Play,
+  Plus,
+  Search,
+  Check,
+  Trash2,
+  CheckCircle2,
+  Clock,
+  RotateCcw,
+  CheckSquare,
+  Square,
+  ExternalLink,
+  Copy,
+  Layers,
+  Sparkles,
+  Globe,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Frame, FramePanel } from "@/components/ui/frame";
 import { useAppStore } from "@/lib/store";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { sanitizeUrls } from "@/utils/url-sanitizer";
 
 function normalizeUrl(url: string): string {
@@ -21,17 +56,21 @@ function normalizeUrl(url: string): string {
 
 export function UrlLibraryTab() {
   const store = useAppStore();
-  
+  const { playClick } = useSoundEffects();
+
   const [urlSearchQuery, setUrlSearchQuery] = useState("");
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState<"all" | "done" | "pending">("all");
   const [isUrlDialogOpen, setIsUrlDialogOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [copiedUrlId, setCopiedUrlId] = useState<string | null>(null);
+
+  // New URL Dialog Inputs
   const [newUrlInput, setNewUrlInput] = useState("");
   const [newUrlTitle, setNewUrlTitle] = useState("");
   const [newUrlCategory, setNewUrlCategory] = useState("Tools");
 
-  // Create a normalized set of generated output URLs
+  // Normalized set of generated output URLs
   const processedUrlSet = useMemo(() => {
     return new Set((store.usedUrls || []).map((u) => normalizeUrl(u)));
   }, [store.usedUrls]);
@@ -54,7 +93,7 @@ export function UrlLibraryTab() {
       (item.category && item.category.toLowerCase().includes(urlSearchQuery.toLowerCase()));
     const matchesCategory =
       selectedCategoryFilter === "All" || item.category === selectedCategoryFilter;
-    
+
     const processed = isUrlProcessed(item.url);
     const matchesStatus =
       statusFilter === "all" ||
@@ -69,6 +108,7 @@ export function UrlLibraryTab() {
     filteredUrls.every((item) => store.selectedSavedUrlIds.includes(item.id));
 
   const handleToggleSelectAll = () => {
+    playClick();
     if (allFilteredSelected) {
       const filteredIds = new Set(filteredUrls.map((u) => u.id));
       store.setSelectedSavedUrlIds(store.selectedSavedUrlIds.filter((id) => !filteredIds.has(id)));
@@ -79,6 +119,7 @@ export function UrlLibraryTab() {
   };
 
   const handleRunSelectedUrls = () => {
+    playClick();
     const selected = store.savedUrls
       .filter((item) => store.selectedSavedUrlIds.includes(item.id))
       .map((item) => item.url);
@@ -89,23 +130,26 @@ export function UrlLibraryTab() {
   };
 
   const handleRemoveSelected = async () => {
+    playClick();
     if (store.selectedSavedUrlIds.length === 0) return;
     await store.removeSavedUrls(store.selectedSavedUrlIds);
   };
 
   const handleSyncStore = async () => {
+    playClick();
     setIsSyncing(true);
     await store.fetchData();
     setIsSyncing(false);
   };
 
   const handleAddUrlToLibrary = async () => {
+    playClick();
     if (!newUrlInput.trim()) return;
     const sanitized = sanitizeUrls(newUrlInput);
     if (!sanitized) return;
 
     const newItems: any[] = [];
-    const urls = sanitized.split("\n").map(u => u.trim()).filter(Boolean);
+    const urls = sanitized.split("\n").map((u) => u.trim()).filter(Boolean);
 
     for (const cleanUrl of urls) {
       try {
@@ -136,42 +180,50 @@ export function UrlLibraryTab() {
   };
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      {/* Top Header & Quick Action Toolbar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h3 className="text-xl font-bold flex items-center gap-2">
-            <Database className="w-5 h-5 text-primary" /> Saved URL Database
-            <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border border-primary/20">
-              {totalCount} total
-            </Badge>
-            {doneCount > 0 && (
-              <Badge variant="outline" className="text-xs border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
-                {doneCount} outputted
+    <div className="flex flex-col gap-6 w-full animate-in fade-in duration-200 pb-12">
+      {/* Hero Header Banner */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-card via-card/90 to-primary/5 border border-border/80 shadow-md">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
+            <Database className="w-6 h-6" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-lg sm:text-xl font-bold font-heading text-foreground leading-tight">
+                Saved URL Database &amp; Scraper Queue
+              </h2>
+              <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-xs font-mono font-bold">
+                {totalCount} Saved
               </Badge>
-            )}
-          </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            File-backed URL library synced with output results in <code className="text-primary font-mono">data/url_library.json</code>.
-          </p>
+              {doneCount > 0 && (
+                <Badge variant="outline" className="text-xs border-emerald-500/30 text-emerald-400 bg-emerald-500/10 font-mono font-semibold">
+                  {doneCount} Outputted
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+              File-backed URL library synced with output generator results in <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded border border-primary/20">data/url_library.json</code>.
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
           <Button
             variant="outline"
             size="sm"
             onClick={handleSyncStore}
             disabled={isSyncing}
-            className="text-xs gap-1.5 font-medium border-border hover:bg-muted w-full sm:w-auto"
+            className="text-xs gap-1.5 font-semibold h-9 border-border hover:bg-muted shrink-0 cursor-pointer active:scale-[0.97]"
           >
-            <RotateCcw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} /> Sync Library & Outputs
+            <RotateCcw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Sync Library</span>
           </Button>
 
           {store.selectedSavedUrlIds.length > 0 && (
             <>
               <Button
                 onClick={handleRunSelectedUrls}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1.5 font-semibold w-full sm:w-auto"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs gap-1.5 font-bold h-9 px-3.5 shrink-0 cursor-pointer active:scale-[0.97] shadow-sm"
               >
                 <Play className="w-3.5 h-3.5 fill-current" /> Run ({store.selectedSavedUrlIds.length}) in Studio
               </Button>
@@ -180,7 +232,7 @@ export function UrlLibraryTab() {
                 variant="destructive"
                 size="sm"
                 onClick={handleRemoveSelected}
-                className="text-xs gap-1.5 font-semibold w-full sm:w-auto"
+                className="text-xs gap-1.5 font-semibold h-9 px-3 shrink-0 cursor-pointer active:scale-[0.97]"
               >
                 <Trash2 className="w-3.5 h-3.5" /> Remove ({store.selectedSavedUrlIds.length})
               </Button>
@@ -190,12 +242,15 @@ export function UrlLibraryTab() {
           <Dialog open={isUrlDialogOpen} onOpenChange={setIsUrlDialogOpen}>
             <DialogTrigger
               render={
-                <Button variant="default" className="bg-primary text-primary-foreground hover:bg-primary/90 text-xs gap-1.5 font-semibold w-full sm:w-auto">
+                <Button
+                  onClick={() => playClick()}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1.5 font-bold h-9 px-4 cursor-pointer active:scale-[0.97] shadow-sm shrink-0"
+                >
                   <Plus className="w-4 h-4" /> Add Saved URLs
                 </Button>
               }
             />
-            <DialogContent className="bg-card border-border text-foreground p-0 overflow-hidden sm:max-w-lg">
+            <DialogContent className="bg-card border-border text-foreground p-0 overflow-hidden sm:max-w-lg rounded-2xl shadow-2xl">
               <Frame variant="default" spacing="default">
                 <FramePanel className="gap-4 p-5">
                   <DialogHeader>
@@ -203,38 +258,47 @@ export function UrlLibraryTab() {
                       <Plus className="w-4 h-4 text-primary" /> Add URLs to Saved Library
                     </DialogTitle>
                     <DialogDescription className="text-xs text-muted-foreground">
-                      Paste single or multiple URLs below. The system automatically sanitizes parameters.
+                      Paste single or multiple web URLs below. The system automatically sanitizes tracking parameters.
                     </DialogDescription>
                   </DialogHeader>
 
-                  <div className="flex flex-col gap-3 py-1">
+                  <div className="flex flex-col gap-3.5 py-1">
                     <div>
-                      <label className="text-xs uppercase font-semibold text-muted-foreground block mb-1.5">
+                      <label className="text-[11px] uppercase font-bold text-muted-foreground block mb-1.5 tracking-wider">
                         Webpage URLs (Bulk Paste Supported)
                       </label>
                       <Textarea
                         rows={5}
-                        placeholder={"https://framer.com\nhttps://linear.app"}
+                        placeholder={"https://framer.com\nhttps://linear.app\nhttps://reactbits.dev"}
                         value={newUrlInput}
                         onChange={(e) => setNewUrlInput(e.target.value)}
-                        className="font-mono text-xs bg-muted/20 border-border"
+                        className="font-mono text-xs bg-muted/20 border-border rounded-xl focus:ring-1 focus:ring-primary"
                       />
                     </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs uppercase font-semibold text-muted-foreground block mb-1.5">
+                        <label className="text-[11px] uppercase font-bold text-muted-foreground block mb-1.5 tracking-wider">
                           Custom Title (Optional)
                         </label>
                         <Input
                           placeholder="Auto-derived if blank"
                           value={newUrlTitle}
                           onChange={(e) => setNewUrlTitle(e.target.value)}
-                          className="bg-muted/20 border-border text-base sm:text-xs"
+                          className="bg-muted/20 border-border text-xs h-9"
                         />
                       </div>
+
                       <div>
-                        <label className="text-xs uppercase font-semibold text-muted-foreground block mb-1.5">Category</label>
-                        <Select value={newUrlCategory} onValueChange={(val) => { if (val) setNewUrlCategory(val); }}>
+                        <label className="text-[11px] uppercase font-bold text-muted-foreground block mb-1.5 tracking-wider">
+                          Category
+                        </label>
+                        <Select
+                          value={newUrlCategory}
+                          onValueChange={(val) => {
+                            if (val) setNewUrlCategory(val);
+                          }}
+                        >
                           <SelectTrigger className="w-full h-9 text-xs bg-muted/20 border-border">
                             <SelectValue placeholder="Select category..." />
                           </SelectTrigger>
@@ -251,11 +315,12 @@ export function UrlLibraryTab() {
                       </div>
                     </div>
                   </div>
-                  <DialogFooter className="pt-2 border-t border-border/40">
+
+                  <DialogFooter className="pt-3 border-t border-border/40">
                     <Button
                       onClick={handleAddUrlToLibrary}
                       disabled={!newUrlInput.trim()}
-                      className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold"
+                      className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold h-9 px-5 cursor-pointer shadow-sm"
                     >
                       Save URLs to Library
                     </Button>
@@ -267,116 +332,135 @@ export function UrlLibraryTab() {
         </div>
       </div>
 
-      {/* Filter & Selection Control Bar */}
-      <Frame variant="default" spacing="default">
-        <FramePanel className="flex flex-col gap-4 p-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            {/* Search Input */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-              <Input
-                placeholder="Search by title, URL, or category..."
-                value={urlSearchQuery}
-                onChange={(e) => setUrlSearchQuery(e.target.value)}
-                className="pl-9 text-base sm:text-xs bg-muted/40 border-border"
-              />
-            </div>
-
-            {/* Select All & Deselect All Controls */}
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleToggleSelectAll}
-                className="text-xs h-8 px-3 gap-1.5 border-border hover:bg-muted font-medium cursor-pointer active:scale-[0.97]"
-              >
-                {allFilteredSelected ? (
-                  <>
-                    <CheckSquare className="w-3.5 h-3.5 text-primary" /> Deselect All
-                  </>
-                ) : (
-                  <>
-                    <Square className="w-3.5 h-3.5 text-muted-foreground" /> Select All ({filteredUrls.length})
-                  </>
-                )}
-              </Button>
-
-              {store.selectedSavedUrlIds.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => store.setSelectedSavedUrlIds([])}
-                  className="text-xs h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer active:scale-[0.97]"
-                >
-                  Clear ({store.selectedSavedUrlIds.length})
-                </Button>
-              )}
-            </div>
+      {/* Control Bar: Search, Status Filters, Category Pills, & Selection Controls */}
+      <div className="flex flex-col gap-3 bg-card p-3 rounded-2xl border border-border/70 shadow-xs">
+        {/* Search Row */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <Input
+              placeholder="Search by title, URL, domain, or category..."
+              value={urlSearchQuery}
+              onChange={(e) => setUrlSearchQuery(e.target.value)}
+              className="pl-8 text-xs h-8 bg-background/80 w-full"
+            />
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-border/40 pt-3">
-            {/* Status Filter Tabs (All / Output Generated / Not Processed) */}
-            <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl border border-border/50 shrink-0 overflow-x-auto max-w-full">
+          {/* Select All & Selection Actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleSelectAll}
+              className="text-xs h-8 px-3 gap-1.5 border-border hover:bg-muted font-semibold cursor-pointer active:scale-[0.97]"
+            >
+              {allFilteredSelected ? (
+                <>
+                  <CheckSquare className="w-3.5 h-3.5 text-primary" /> Deselect All
+                </>
+              ) : (
+                <>
+                  <Square className="w-3.5 h-3.5 text-muted-foreground" /> Select All ({filteredUrls.length})
+                </>
+              )}
+            </Button>
+
+            {store.selectedSavedUrlIds.length > 0 && (
               <Button
-                variant={statusFilter === "all" ? "default" : "ghost"}
-                size="xs"
-                onClick={() => setStatusFilter("all")}
-                className="text-xs font-semibold h-7 px-3 rounded-lg"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  playClick();
+                  store.setSelectedSavedUrlIds([]);
+                }}
+                className="text-xs h-8 px-2.5 text-muted-foreground hover:text-foreground cursor-pointer active:scale-[0.97]"
               >
-                All ({totalCount})
+                Clear Selection ({store.selectedSavedUrlIds.length})
               </Button>
-              <Button
-                variant={statusFilter === "done" ? "default" : "ghost"}
-                size="xs"
-                onClick={() => setStatusFilter("done")}
-                className={`text-xs font-semibold h-7 px-3 rounded-lg gap-1.5 ${
-                  statusFilter === "done" ? "bg-emerald-600 text-white" : "text-emerald-400 hover:text-emerald-300"
+            )}
+          </div>
+        </div>
+
+        {/* Filters Row: Status Pills & Category Tabs - Standardized to h-8 height */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2.5 border-t border-border/40">
+          {/* Status Filter Pills - h-8 height */}
+          <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
+            <button
+              onClick={() => {
+                playClick();
+                setStatusFilter("all");
+              }}
+              className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
+                statusFilter === "all"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              All ({totalCount})
+            </button>
+
+            <button
+              onClick={() => {
+                playClick();
+                setStatusFilter("done");
+              }}
+              className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer ${
+                statusFilter === "done"
+                  ? "bg-emerald-600 text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <CheckCircle2 className="w-3 h-3" /> Output Generated ({doneCount})
+            </button>
+
+            <button
+              onClick={() => {
+                playClick();
+                setStatusFilter("pending");
+              }}
+              className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer ${
+                statusFilter === "pending"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Clock className="w-3 h-3 opacity-60" /> Not Processed ({pendingCount})
+            </button>
+          </div>
+
+          {/* Category Filter Pills - h-8 height */}
+          <div className="flex items-center gap-1 flex-wrap">
+            {Array.from(new Set(["All", ...store.savedUrls.map((u) => u.category || "General")])).map((cat) => (
+              <button
+                key={cat}
+                onClick={() => {
+                  playClick();
+                  setSelectedCategoryFilter(cat);
+                }}
+                className={`h-8 text-[11px] font-semibold px-3 rounded-full transition-all flex items-center justify-center cursor-pointer ${
+                  selectedCategoryFilter === cat
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/80 border border-border/40"
                 }`}
               >
-                <CheckCircle2 className="w-3 h-3" /> Output Generated ({doneCount})
-              </Button>
-              <Button
-                variant={statusFilter === "pending" ? "default" : "ghost"}
-                size="xs"
-                onClick={() => setStatusFilter("pending")}
-                className="text-xs font-semibold h-7 px-3 rounded-lg gap-1.5"
-              >
-                <Clock className="w-3 h-3 text-muted-foreground" /> Not Processed ({pendingCount})
-              </Button>
-            </div>
-
-            {/* Category Filter Pills */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {Array.from(new Set(["All", ...store.savedUrls.map((u) => u.category || "General")])).map((cat) => (
-                <Button
-                  key={cat}
-                  variant={selectedCategoryFilter === cat ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setSelectedCategoryFilter(cat)}
-                  className={`text-xs h-7 px-3 rounded-full transition-all ${
-                    selectedCategoryFilter === cat
-                      ? "bg-primary text-primary-foreground font-semibold"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {cat}
-                </Button>
-              ))}
-            </div>
+                {cat}
+              </button>
+            ))}
           </div>
-        </FramePanel>
-      </Frame>
+        </div>
+      </div>
 
       {/* URL Cards Grid */}
       {filteredUrls.length === 0 ? (
-        <Frame variant="default" spacing="default">
-          <FramePanel className="p-8 text-center flex flex-col items-center justify-center gap-3">
-            <Database className="w-8 h-8 text-muted-foreground opacity-50" />
-            <p className="text-sm font-semibold text-muted-foreground">No matching URLs found.</p>
-          </FramePanel>
-        </Frame>
+        <div className="p-12 border border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 text-center bg-card/40">
+          <Globe className="w-10 h-10 text-muted-foreground/40" />
+          <h5 className="text-sm font-bold text-foreground">No Matching Saved URLs Found</h5>
+          <p className="text-xs text-muted-foreground">
+            Try adjusting your search query or category filters above.
+          </p>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
           {filteredUrls.map((item) => {
             const isChecked = store.selectedSavedUrlIds.includes(item.id);
             const isProcessed = isUrlProcessed(item.url);
@@ -386,10 +470,13 @@ export function UrlLibraryTab() {
                 key={item.id}
                 variant="default"
                 spacing="default"
-                className={`cursor-pointer transition-all duration-200 ${
-                  isChecked ? "border-primary bg-primary/10" : "hover:border-primary/50"
+                className={`group transition-all duration-200 cursor-pointer overflow-hidden flex flex-col justify-between ${
+                  isChecked
+                    ? "ring-2 ring-inset ring-primary border-primary bg-primary/5 shadow-md"
+                    : "hover:border-border/90 hover:shadow-md"
                 }`}
                 onClick={() => {
+                  playClick();
                   if (isChecked) {
                     store.setSelectedSavedUrlIds(store.selectedSavedUrlIds.filter((id) => id !== item.id));
                   } else {
@@ -397,67 +484,114 @@ export function UrlLibraryTab() {
                   }
                 }}
               >
-                <FramePanel className="p-4 flex flex-col gap-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold text-sm text-foreground truncate">{item.title}</span>
-                    <div
-                      className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all shrink-0 ${
-                        isChecked
-                          ? "bg-primary border-primary text-primary-foreground"
-                          : "border-border/80 bg-muted/20 hover:border-primary/60"
-                      }`}
-                    >
-                      {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                <FramePanel className="p-4 flex flex-col gap-3 justify-between h-full">
+                  <div className="flex flex-col gap-2">
+                    {/* Header Row: Title & Checkbox */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Globe className="w-4 h-4 text-primary/70 shrink-0" />
+                        <span className="font-bold text-sm text-foreground truncate">{item.title}</span>
+                      </div>
+
+                      <div
+                        className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all shrink-0 mt-0.5 ${
+                          isChecked
+                            ? "bg-primary border-primary text-primary-foreground shadow-xs"
+                            : "border-border/80 bg-muted/20 hover:border-primary/60"
+                        }`}
+                      >
+                        {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                      </div>
+                    </div>
+
+                    {/* URL Link snippet */}
+                    <p className="text-[11px] font-mono text-muted-foreground truncate bg-muted/30 px-2 py-1 rounded border border-border/40">
+                      {item.url}
+                    </p>
+
+                    {/* Output Status Badge */}
+                    <div className="pt-0.5">
+                      {isProcessed ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] gap-1 font-semibold py-0.5 px-2">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Output Generated
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground/70 border-border/60 text-[10px] gap-1 py-0.5 px-2">
+                          <Clock className="w-3 h-3 text-muted-foreground/50" /> Not Processed
+                        </Badge>
+                      )}
                     </div>
                   </div>
 
-                  <p className="text-xs font-mono text-muted-foreground truncate">{item.url}</p>
-
-                  {/* Output Status Badge */}
-                  <div className="pt-1">
-                    {isProcessed ? (
-                      <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] gap-1 font-semibold py-0.5 px-2">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Output Generated
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-muted-foreground/70 border-border/60 text-[10px] gap-1 py-0.5 px-2">
-                        <Clock className="w-3 h-3 text-muted-foreground/50" /> Not Processed
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Footer & Card Action Buttons */}
-                  <div className="flex items-center justify-between mt-1 pt-2 border-t border-border/40">
-                    <Badge variant="secondary" className="bg-muted text-muted-foreground text-[10px]">
-                      {item.category}
+                  {/* Card Footer & Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t border-border/40 gap-2">
+                    <Badge variant="secondary" className="bg-muted text-muted-foreground text-[10px] font-medium">
+                      {item.category || "General"}
                     </Badge>
 
                     <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon-xs"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const lines = store.urls.split("\n").map(u => u.trim()).filter(Boolean);
-                          if (!lines.includes(item.url)) {
-                             store.setUrls([...lines, item.url].join("\n"));
-                          }
-                          store.setActiveTab("studio");
+                          playClick();
+                          navigator.clipboard.writeText(item.url);
+                          setCopiedUrlId(item.id);
+                          setTimeout(() => setCopiedUrlId(null), 2000);
                         }}
-                        className="h-6 text-[10px] px-2 text-primary hover:bg-primary/10 gap-1 font-semibold"
+                        className="size-6 text-muted-foreground hover:text-foreground cursor-pointer active:scale-[0.97]"
+                        title="Copy URL"
                       >
-                        <Play className="w-3 h-3 fill-current" /> Stage in Studio
+                        {copiedUrlId === item.id ? (
+                          <Check className="w-3 h-3 text-emerald-400" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
                       </Button>
 
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="xs"
                         onClick={(e) => {
                           e.stopPropagation();
+                          playClick();
+                          window.open(item.url, "_blank");
+                        }}
+                        className="h-6 px-1.5 text-[10px] text-muted-foreground hover:text-foreground cursor-pointer active:scale-[0.97]"
+                        title="Open URL in New Tab"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playClick();
+                          const lines = store.urls.split("\n").map((u) => u.trim()).filter(Boolean);
+                          if (!lines.includes(item.url)) {
+                            store.setUrls([...lines, item.url].join("\n"));
+                          }
+                          store.setActiveTab("studio");
+                        }}
+                        className="h-6 text-[10px] px-2 text-primary hover:bg-primary/10 gap-1 font-bold cursor-pointer active:scale-[0.97]"
+                        title="Stage URL in Studio Configurator"
+                      >
+                        <Play className="w-3 h-3 fill-current" /> Stage
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playClick();
                           store.removeSavedUrls([item.id]);
                         }}
-                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                        title="Remove from library"
+                        className="size-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer active:scale-[0.97]"
+                        title="Remove from Library"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>

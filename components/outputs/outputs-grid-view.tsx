@@ -129,30 +129,26 @@ export function OutputsGridView({
             {/* ═══════════════════════════════════════════ */}
 
             {/* Ghost layer 3 — furthest back */}
-            {hasMultipleSlides && (
+            {hasMultipleSlides && slide3Url && (
               <div
                 className="absolute inset-x-3 top-3 aspect-[4/5] rounded-xl overflow-hidden border border-border/50 bg-muted/20 z-[-2] shadow-sm
                   translate-x-[6px] translate-y-[6px] rotate-[2.5deg] scale-[0.97]
                   group-hover:translate-x-[18px] group-hover:rotate-[5deg] group-hover:translate-y-[2px]
                   transition-all duration-300 ease-out pointer-events-none"
               >
-                {slide3Url && (
-                  <img src={slide3Url} alt="Slide 3" className="w-full h-full object-cover opacity-60" />
-                )}
+                <img src={slide3Url} alt="" className="w-full h-full object-cover opacity-60" />
               </div>
             )}
 
             {/* Ghost layer 2 — middle */}
-            {hasMultipleSlides && (
+            {hasMultipleSlides && slide2Url && (
               <div
                 className="absolute inset-x-3 top-3 aspect-[4/5] rounded-xl overflow-hidden border border-border/60 bg-muted/30 z-[-1] shadow-md
                   translate-x-[3px] translate-y-[3px] rotate-[1.2deg] scale-[0.98]
                   group-hover:translate-x-[9px] group-hover:rotate-[2.5deg] group-hover:translate-y-[1px]
                   transition-all duration-300 ease-out pointer-events-none"
               >
-                {slide2Url && (
-                  <img src={slide2Url} alt="Slide 2" className="w-full h-full object-cover opacity-75" />
-                )}
+                <img src={slide2Url} alt="" className="w-full h-full object-cover opacity-75" />
               </div>
             )}
 

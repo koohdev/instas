@@ -32,6 +32,7 @@ import { OutputsCalendarView } from "./outputs-calendar-view";
 import { OutputSlideDrawer } from "./output-slide-drawer";
 import type { OutputBatchItem } from "@/app/api/outputs/route";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { CapacityAllocationCard } from "@/components/capacity-allocation-card";
 
 export function OutputsManager() {
   const [outputs, setOutputs] = useState<OutputBatchItem[]>([]);
@@ -135,71 +136,121 @@ export function OutputsManager() {
   const scheduledCount = outputs.filter((o) => o.status === "scheduled").length;
   const totalSlides = outputs.reduce((acc, o) => acc + o.slideCount, 0);
 
+  const notPostedPct = totalBatches > 0 ? Math.round((notPostedCount / totalBatches) * 100) : 0;
+  const scheduledPct = totalBatches > 0 ? Math.round((scheduledCount / totalBatches) * 100) : 0;
+  const postedPct = totalBatches > 0 ? Math.round((postedCount / totalBatches) * 100) : 0;
+
   return (
     <div className="flex flex-col gap-6 w-full pb-12">
-      {/* Header & Stats Banner */}
+      {/* Top Header Banner */}
       <div className="flex items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-card via-card/90 to-primary/5 border border-border/80 shadow-md">
         {/* Left: Icon + Title */}
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
             <FolderCheck className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-base sm:text-lg font-bold font-heading text-foreground leading-tight">Outputs Gallery &amp; Scheduler</h2>
+            <h2 className="text-base sm:text-lg font-bold font-heading text-foreground leading-tight">
+              Outputs Gallery &amp; Scheduler
+            </h2>
             <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-              Manage all generated carousels, update publication status, and schedule upcoming posts.
+              Manage generated carousel batches, update publication statuses, and schedule posts.
             </p>
           </div>
         </div>
 
-        {/* Right: Stats + Actions */}
+        {/* Right: Actions */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Inline stats pill – desktop only */}
-          <div className="hidden md:flex items-center divide-x divide-border/50 bg-muted/40 rounded-xl border border-border/50 text-xs overflow-hidden">
-            <div className="flex flex-col items-center px-3 py-1.5">
-              <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">Total</span>
-              <span className="font-bold text-foreground font-mono">{totalBatches}</span>
-            </div>
-            <div className="flex flex-col items-center px-3 py-1.5">
-              <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wide">Posted</span>
-              <span className="font-bold text-emerald-400 font-mono">{postedCount}</span>
-            </div>
-            <div className="flex flex-col items-center px-3 py-1.5">
-              <span className="text-[10px] text-blue-400 font-semibold uppercase tracking-wide">Scheduled</span>
-              <span className="font-bold text-blue-400 font-mono">{scheduledCount}</span>
-            </div>
-            <div className="flex flex-col items-center px-3 py-1.5">
-              <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">Slides</span>
-              <span className="font-bold text-foreground font-mono">{totalSlides}</span>
-            </div>
-          </div>
-
           <Button
             variant="default"
             size="sm"
-            onClick={() => { playClick(); window.location.href = "/api/outputs/download?folder=all"; }}
-            className="gap-1.5 text-xs font-bold h-9 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer active:scale-[0.97] transition-all shrink-0"
+            onClick={() => {
+              playClick();
+              window.location.href = "/api/outputs/download?folder=all";
+            }}
+            className="gap-1.5 text-xs font-bold h-9 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer active:scale-[0.97] transition-all shrink-0 shadow-sm"
             title="Download all generated slide batches as a ZIP archive"
           >
             <Download className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Download All (.ZIP)</span>
             <span className="sm:hidden">ZIP</span>
           </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => { playClick(); fetchOutputs(); }}
-            disabled={loading}
-            className="gap-1.5 text-xs font-semibold h-9 cursor-pointer active:scale-[0.97] shrink-0"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </Button>
         </div>
       </div>
 
-      {/* Control Bar */}
+      {/* 3 KPI Capacity Allocation Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 w-full">
+        {/* KPI 1: Not Posted */}
+        <div
+          onClick={() => {
+            playClick();
+            setStatusFilter(statusFilter === "not_posted" ? "all" : "not_posted");
+          }}
+          className="cursor-pointer h-full"
+        >
+          <CapacityAllocationCard
+            title="Not Posted"
+            percentage={notPostedPct}
+            trend={notPostedCount > 0 ? `${notPostedCount} unposted` : "0 pending"}
+            subtext="Drafts awaiting publication"
+            footerLabel="Not Posted Count"
+            footerValue={`${notPostedCount} / ${totalBatches}`}
+            hideMembers={true}
+            barColorClass="bg-amber-500"
+            loading={loading}
+            isSelected={statusFilter === "not_posted"}
+            activeColorClass="ring-amber-500 border-amber-500/80 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+          />
+        </div>
+
+        {/* KPI 2: Scheduled */}
+        <div
+          onClick={() => {
+            playClick();
+            setStatusFilter(statusFilter === "scheduled" ? "all" : "scheduled");
+          }}
+          className="cursor-pointer h-full"
+        >
+          <CapacityAllocationCard
+            title="Scheduled"
+            percentage={scheduledPct}
+            trend={scheduledCount > 0 ? `${scheduledCount} scheduled` : "0 queued"}
+            subtext="Queued for automated release"
+            footerLabel="Scheduled Count"
+            footerValue={`${scheduledCount} / ${totalBatches}`}
+            hideMembers={true}
+            barColorClass="bg-blue-500"
+            loading={loading}
+            isSelected={statusFilter === "scheduled"}
+            activeColorClass="ring-blue-500 border-blue-500/80 shadow-[0_0_12px_rgba(59,130,246,0.25)]"
+          />
+        </div>
+
+        {/* KPI 3: Posted */}
+        <div
+          onClick={() => {
+            playClick();
+            setStatusFilter(statusFilter === "posted" ? "all" : "posted");
+          }}
+          className="cursor-pointer h-full"
+        >
+          <CapacityAllocationCard
+            title="Posted Outputs"
+            percentage={postedPct}
+            trend={postedCount > 0 ? `${postedCount} posted` : "0 posted"}
+            subtext={`Posted to ${postedCount} output destination${postedCount === 1 ? "" : "s"}`}
+            footerLabel="Posted Count"
+            footerValue={`${postedCount} / ${totalBatches}`}
+            hideMembers={true}
+            barColorClass="bg-emerald-500"
+            loading={loading}
+            isSelected={statusFilter === "posted"}
+            activeColorClass="ring-emerald-500 border-emerald-500/80 shadow-[0_0_12px_rgba(16,185,129,0.25)]"
+          />
+        </div>
+      </div>
+
+      {/* Control Bar - All elements standardized to h-8 (32px) height */}
       <div className="flex items-center gap-2 bg-card p-2.5 rounded-xl border border-border/70 shadow-xs">
         {/* Search */}
         <div className="relative shrink-0 w-44 lg:w-56">
@@ -215,11 +266,11 @@ export function OutputsManager() {
         {/* Divider */}
         <div className="w-px h-6 bg-border/50 shrink-0" />
 
-        {/* Status Filter Pills – auto width, not stretched */}
-        <div className="flex items-center gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
+        {/* Status Filter Pills – h-8 height, auto width, not stretched */}
+        <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
           <button
             onClick={() => { playClick(); setStatusFilter("all"); }}
-            className={`flex-none text-xs font-semibold px-3 py-1 rounded-md transition-all cursor-pointer ${
+            className={`flex-none h-full text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
               statusFilter === "all" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -227,7 +278,7 @@ export function OutputsManager() {
           </button>
           <button
             onClick={() => { playClick(); setStatusFilter("not_posted"); }}
-            className={`flex-none text-xs font-semibold px-3 py-1 rounded-md transition-all inline-flex items-center gap-1 cursor-pointer ${
+            className={`flex-none h-full text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer ${
               statusFilter === "not_posted" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -235,7 +286,7 @@ export function OutputsManager() {
           </button>
           <button
             onClick={() => { playClick(); setStatusFilter("posted"); }}
-            className={`flex-none text-xs font-semibold px-3 py-1 rounded-md transition-all inline-flex items-center gap-1 cursor-pointer ${
+            className={`flex-none h-full text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer ${
               statusFilter === "posted" ? "bg-emerald-600 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -243,7 +294,7 @@ export function OutputsManager() {
           </button>
           <button
             onClick={() => { playClick(); setStatusFilter("scheduled"); }}
-            className={`flex-none text-xs font-semibold px-3 py-1 rounded-md transition-all inline-flex items-center gap-1 cursor-pointer ${
+            className={`flex-none h-full text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer ${
               statusFilter === "scheduled" ? "bg-blue-600 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -254,7 +305,7 @@ export function OutputsManager() {
         {/* Spacer pushes sort+views to the right */}
         <div className="flex-1" />
 
-        {/* Sort Dropdown */}
+        {/* Sort Dropdown - h-8 height */}
         <DropdownMenu>
           <DropdownMenuTrigger className="shrink-0 inline-flex items-center justify-center rounded-md border border-border/80 bg-background hover:bg-muted text-foreground h-8 px-3 text-xs font-medium gap-1.5 cursor-pointer">
             <ArrowUpDown className="w-3.5 h-3.5" />
@@ -268,15 +319,15 @@ export function OutputsManager() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* View Mode Icons – same h-8 height as sort */}
-        <div className="flex items-center h-8 gap-0.5 bg-muted/60 px-0.5 rounded-lg border border-border/50 shrink-0">
-          <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("grid"); }} title="Grid View" className="size-7">
+        {/* View Mode Icons - h-8 height container */}
+        <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
+          <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("grid"); }} title="Grid View" className="h-full w-7">
             <LayoutGrid className="w-3.5 h-3.5" />
           </Button>
-          <Button variant={viewMode === "table" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("table"); }} title="Table View" className="size-7">
+          <Button variant={viewMode === "table" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("table"); }} title="Table View" className="h-full w-7">
             <List className="w-3.5 h-3.5" />
           </Button>
-          <Button variant={viewMode === "calendar" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("calendar"); }} title="Calendar View" className="size-7">
+          <Button variant={viewMode === "calendar" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("calendar"); }} title="Calendar View" className="h-full w-7">
             <CalendarIcon className="w-3.5 h-3.5" />
           </Button>
         </div>

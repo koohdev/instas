@@ -10,7 +10,6 @@ import { Frame, FramePanel } from "@/components/ui/frame";
 import { useGeneration } from "@/hooks/useGeneration";
 import { useAppStore } from "@/lib/store";
 
-// Generation step definitions
 const STEPS = [
   { label: "Scraping URLs", threshold: 0 },
   { label: "Compositing Slides", threshold: 25 },
@@ -40,49 +39,51 @@ export function GenerationStatus() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Button
-        onClick={onGenerateClick}
-        disabled={status === "loading" || urlList.length === 0}
-        className={`relative overflow-hidden w-full h-12 text-sm font-bold rounded-lg cursor-pointer transition-all duration-300 ${
-          urlList.length === 0 && status !== "loading" ? "opacity-50 cursor-not-allowed" : ""
-        } ${
-          status === "loading"
-            ? "bg-muted border border-border text-foreground"
-            : status === "success"
-            ? "bg-emerald-600 hover:bg-emerald-600 text-white shadow-emerald-500/20"
-            : "bg-primary hover:bg-primary/90 text-primary-foreground"
-        }`}
-      >
-        {/* Progress fill bar */}
-        {status === "loading" && (
-          <motion.div
-            className="absolute inset-y-0 left-0 bg-primary/25 border-r-2 border-primary/80"
-            initial={{ width: "4%" }}
-            animate={{ width: `${Math.max(Math.round(progress), 4)}%` }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-          >
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.15)_50%,transparent_100%)] animate-pulse" />
-          </motion.div>
-        )}
-        <span className="relative z-10 flex items-center justify-center gap-2">
-          {status === "loading" ? (
-            <>
-              <Wand2 className="w-4 h-4 shrink-0 text-primary" />
-              <span className="text-foreground">{statusMessage || `Generating (${urlList.length + 1} slides)...`}</span>
-              <span className="font-mono text-xs font-bold text-primary">({Math.round(progress)}%)</span>
-            </>
-          ) : status === "success" ? (
-            <>
-              <CheckCheck className="w-4 h-4 stroke-[2.5]" />
-              Carousel Batch Generated
-            </>
-          ) : (
-            <>
-              <Play className="w-4 h-4 fill-current" /> Generate Carousel ({urlList.length + 1} slides)
-            </>
+      <div className="sticky bottom-4 z-30 bg-background/80 backdrop-blur-md p-2 rounded-xl border border-primary/30 shadow-2xl">
+        <Button
+          onClick={onGenerateClick}
+          disabled={status === "loading" || urlList.length === 0}
+          className={`relative overflow-hidden w-full h-12 text-sm font-bold rounded-lg cursor-pointer transition-all duration-300 shadow-lg ${
+            urlList.length === 0 && status !== "loading" ? "opacity-50 cursor-not-allowed" : ""
+          } ${
+            status === "loading"
+              ? "bg-muted border border-border text-foreground"
+              : status === "success"
+              ? "bg-emerald-600 hover:bg-emerald-600 text-white shadow-emerald-500/20"
+              : "bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/25"
+          }`}
+        >
+          {/* Progress fill bar */}
+          {status === "loading" && (
+            <motion.div
+              className="absolute inset-y-0 left-0 bg-primary/25 border-r-2 border-primary/80"
+              initial={{ width: "4%" }}
+              animate={{ width: `${Math.max(Math.round(progress), 4)}%` }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            >
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.15)_50%,transparent_100%)] animate-pulse" />
+            </motion.div>
           )}
-        </span>
-      </Button>
+          <span className="relative z-10 flex items-center justify-center gap-2">
+            {status === "loading" ? (
+              <>
+                <Wand2 className="w-4 h-4 shrink-0 text-primary" />
+                <span className="text-foreground">{statusMessage || `Generating (${urlList.length + 1} slides)...`}</span>
+                <span className="font-mono text-xs font-bold text-primary">({Math.round(progress)}%)</span>
+              </>
+            ) : status === "success" ? (
+              <>
+                <CheckCheck className="w-4 h-4 stroke-[2.5]" />
+                Carousel Batch Generated
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4 fill-current" /> Generate Carousel ({urlList.length + 1} slides)
+              </>
+            )}
+          </span>
+        </Button>
+      </div>
 
       {/* Animated Progress Stepper */}
       <AnimatePresence>
