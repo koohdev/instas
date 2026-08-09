@@ -4,12 +4,22 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RotateCcw, Bookmark, Sparkles, Volume2, VolumeX } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { RotateCcw, Bookmark, Sparkles, Volume2, VolumeX, SlidersHorizontal, Network } from "lucide-react";
 import { useSoundContext } from "@/components/sound-provider";
 
 interface SiteHeaderProps {
   activeTab: string;
   urlCount?: number;
+  studioViewMode?: "form" | "canvas";
+  onStudioViewModeChange?: (mode: "form" | "canvas") => void;
   onSyncStore?: () => void;
   onOpenStagingDrawer?: () => void;
   onOpenPresetDialog?: () => void;
@@ -22,6 +32,8 @@ interface SiteHeaderProps {
 export function SiteHeader({
   activeTab,
   urlCount = 0,
+  studioViewMode = "form",
+  onStudioViewModeChange,
   onSyncStore,
   onOpenStagingDrawer,
   onOpenPresetDialog,
@@ -45,15 +57,59 @@ export function SiteHeader({
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b border-border/60 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height) px-4 lg:px-6">
       <div className="flex w-full items-center justify-between gap-2">
-        {/* Left: Dynamic Header Title */}
-        <div className="flex items-center gap-2">
+        {/* Left: Breadcrumb Context & Header View Mode Switcher */}
+        <div className="flex items-center gap-2 min-w-0">
           <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mx-1 h-4" />
-          <h1 className="text-sm md:text-base font-bold text-foreground capitalize">{displayTitle}</h1>
+          <Separator orientation="vertical" className="mx-1 h-4 shrink-0" />
+          
+          <Breadcrumb>
+            <BreadcrumbList className="text-xs sm:text-sm font-medium">
+              <BreadcrumbItem>
+                <BreadcrumbLink href="#" onClick={(e) => e.preventDefault()} className="text-muted-foreground hover:text-foreground">
+                  Workspace
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="font-semibold text-foreground truncate max-w-[160px] sm:max-w-none">
+                  {displayTitle}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
           {activeTab === "studio" && (
-            <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-[10px] ml-1">
+            <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-[10px] ml-1 shrink-0">
               {urlCount} staged
             </Badge>
+          )}
+
+          {/* Integrated Header View Mode Switcher */}
+          {activeTab === "studio" && (
+            <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0 ml-1.5">
+              <Button
+                variant={studioViewMode === "form" ? "secondary" : "ghost"}
+                size="xs"
+                onClick={() => onStudioViewModeChange?.("form")}
+                className="text-[11px] font-semibold h-6 px-2 rounded-md gap-1 cursor-pointer active:scale-[0.97]"
+                title="Form View"
+              >
+                <SlidersHorizontal className="w-3 h-3 text-primary" />
+                <span className="hidden md:inline">Form View</span>
+                <span className="md:hidden">Form</span>
+              </Button>
+              <Button
+                variant={studioViewMode === "canvas" ? "secondary" : "ghost"}
+                size="xs"
+                onClick={() => onStudioViewModeChange?.("canvas")}
+                className="text-[11px] font-semibold h-6 px-2 rounded-md gap-1 cursor-pointer active:scale-[0.97]"
+                title="Visual Node Canvas"
+              >
+                <Network className="w-3 h-3 text-primary" />
+                <span className="hidden md:inline">Visual Node Canvas</span>
+                <span className="md:hidden">Canvas</span>
+              </Button>
+            </div>
           )}
         </div>
 

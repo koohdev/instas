@@ -90,6 +90,8 @@ export function AppShell({ activeRoute }: AppShellProps) {
           <SiteHeader
             activeTab={currentTab}
             urlCount={urlCount}
+            studioViewMode={studioViewMode}
+            onStudioViewModeChange={setStudioViewMode}
             onSyncStore={store.fetchData}
             onOpenStagingDrawer={() => setIsAssetDrawerOpen(true)}
             onOpenPresetDialog={() => setIsPresetDialogOpen(true)}
@@ -144,38 +146,6 @@ export function AppShell({ activeRoute }: AppShellProps) {
 
                 {currentTab === "studio" && (
                   <div className="flex flex-col gap-6 w-full">
-                  <div className="flex flex-col gap-3 pb-2 border-b border-border/40">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <h2 className="text-base sm:text-lg font-bold text-foreground truncate">
-                            Studio Generator
-                          </h2>
-                          <Badge variant="outline" className="text-[10px] uppercase border-primary/30 text-primary font-mono shrink-0">
-                            {studioViewMode === "canvas" ? "Node Graph" : "Classic"}
-                          </Badge>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl border border-border/50 self-start sm:self-auto shrink-0">
-                          <Button
-                            variant={studioViewMode === "form" ? "default" : "ghost"}
-                            size="xs"
-                            onClick={() => setStudioViewMode("form")}
-                            className="text-xs font-semibold h-7 px-2.5 rounded-lg gap-1 cursor-pointer active:scale-[0.97]"
-                          >
-                            <SlidersHorizontal className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Form View</span><span className="sm:hidden">Form</span>
-                          </Button>
-                          <Button
-                            variant={studioViewMode === "canvas" ? "default" : "ghost"}
-                            size="xs"
-                            onClick={() => setStudioViewMode("canvas")}
-                            className="text-xs font-semibold h-7 px-2.5 rounded-lg gap-1 cursor-pointer active:scale-[0.97]"
-                          >
-                            <Network className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Visual Node Canvas</span><span className="sm:hidden">Canvas</span>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
                     {studioViewMode === "canvas" ? (
                       <div className="w-full flex flex-col" style={{ minHeight: 'calc(100vh - 200px)' }}>
                         <CanvasFlowEditor />
