@@ -1,5 +1,6 @@
 "use client";
 
+import { Frame, FramePanel } from "@/components/ui/frame";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -143,40 +144,43 @@ export function OutputsManager() {
   return (
     <div className="flex flex-col gap-6 w-full pb-12">
       {/* Top Header Banner */}
-      <div className="flex items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-card via-card/90 to-primary/5 border border-border/80 shadow-md">
-        {/* Left: Icon + Title */}
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
-            <FolderCheck className="w-5 h-5" />
-          </div>
-          <div className="min-w-0">
-            <h2 className="text-base sm:text-lg font-bold font-heading text-foreground leading-tight">
-              Outputs Gallery &amp; Scheduler
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-              Manage generated carousel batches, update publication statuses, and schedule posts.
-            </p>
-          </div>
-        </div>
+      <Frame variant="default" spacing="default" className="w-full">
+        <FramePanel className="p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 w-full">
+            {/* Left: Icon + Title */}
+            <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
+                <FolderCheck className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base sm:text-lg font-bold font-heading text-foreground leading-tight">
+                  Outputs Gallery &amp; Scheduler
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                  Manage generated carousel batches, update publication statuses, and schedule posts.
+                </p>
+              </div>
+            </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2 shrink-0">
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => {
-              playClick();
-              window.location.href = "/api/outputs/download?folder=all";
-            }}
-            className="gap-1.5 text-xs font-bold h-9 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer active:scale-[0.97] transition-all shrink-0 shadow-sm"
-            title="Download all generated slide batches as a ZIP archive"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Download All (.ZIP)</span>
-            <span className="sm:hidden">ZIP</span>
-          </Button>
-        </div>
-      </div>
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => {
+                  playClick();
+                  window.location.href = "/api/outputs/download?folder=all";
+                }}
+                className="gap-1.5 text-xs font-bold h-9 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer active:scale-[0.97] transition-all w-full sm:w-auto justify-center shadow-sm"
+                title="Download all generated slide batches as a ZIP archive"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download All (.ZIP)</span>
+              </Button>
+            </div>
+          </div>
+        </FramePanel>
+      </Frame>
 
       {/* 3 KPI Capacity Allocation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 w-full">
@@ -250,88 +254,115 @@ export function OutputsManager() {
         </div>
       </div>
 
-      {/* Control Bar - All elements standardized to h-8 (32px) height */}
-      <div className="flex items-center gap-2 bg-card p-2.5 rounded-xl border border-border/70 shadow-xs">
-        {/* Search */}
-        <div className="relative shrink-0 w-44 lg:w-56">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search outputs..."
-            className="pl-8 h-8 text-xs bg-background/80 w-full"
-          />
-        </div>
+      {/* Control Bar - Fully responsive on mobile/tablet */}
+      <Frame variant="default" spacing="default" className="w-full">
+        <FramePanel className="p-3">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 w-full">
+            {/* Search */}
+            <div className="relative w-full md:w-56 shrink-0">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search outputs..."
+                className="pl-8 h-8 text-xs bg-background/80 w-full"
+              />
+            </div>
 
-        {/* Divider */}
-        <div className="w-px h-6 bg-border/50 shrink-0" />
+            {/* Divider - hidden on mobile */}
+            <div className="hidden md:block w-px h-6 bg-border/50 shrink-0" />
 
-        {/* Status Filter Pills – h-8 height, auto width, not stretched */}
-        <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
-          <button
-            onClick={() => { playClick(); setStatusFilter("all"); }}
-            className={`flex-none h-full text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
-              statusFilter === "all" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            All ({totalBatches})
-          </button>
-          <button
-            onClick={() => { playClick(); setStatusFilter("not_posted"); }}
-            className={`flex-none h-full text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer ${
-              statusFilter === "not_posted" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Circle className="w-3 h-3 opacity-60" /> Not Posted ({notPostedCount})
-          </button>
-          <button
-            onClick={() => { playClick(); setStatusFilter("posted"); }}
-            className={`flex-none h-full text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer ${
-              statusFilter === "posted" ? "bg-emerald-600 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <CheckCircle2 className="w-3 h-3" /> Posted ({postedCount})
-          </button>
-          <button
-            onClick={() => { playClick(); setStatusFilter("scheduled"); }}
-            className={`flex-none h-full text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer ${
-              statusFilter === "scheduled" ? "bg-blue-600 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Clock className="w-3 h-3" /> Scheduled ({scheduledCount})
-          </button>
-        </div>
+            {/* Status Filter Pills - copied directly from url-library-tab */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0 w-full md:w-auto">
+              <button
+                onClick={() => {
+                  playClick();
+                  setStatusFilter("all");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
+                  statusFilter === "all"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                All ({totalBatches})
+              </button>
 
-        {/* Spacer pushes sort+views to the right */}
-        <div className="flex-1" />
+              <button
+                onClick={() => {
+                  playClick();
+                  setStatusFilter("not_posted");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
+                  statusFilter === "not_posted"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Circle className="w-3 h-3 opacity-60" /> Not Posted ({notPostedCount})
+              </button>
 
-        {/* Sort Dropdown - h-8 height */}
-        <DropdownMenu>
-          <DropdownMenuTrigger className="shrink-0 inline-flex items-center justify-center rounded-md border border-border/80 bg-background hover:bg-muted text-foreground h-8 px-3 text-xs font-medium gap-1.5 cursor-pointer">
-            <ArrowUpDown className="w-3.5 h-3.5" />
-            <span className="capitalize">{sortBy}</span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36">
-            <DropdownMenuItem onClick={() => setSortBy("newest")}>Newest First</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSortBy("oldest")}>Oldest First</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSortBy("slides")}>Most Slides</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSortBy("title")}>Alphabetical</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <button
+                onClick={() => {
+                  playClick();
+                  setStatusFilter("posted");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
+                  statusFilter === "posted"
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <CheckCircle2 className="w-3 h-3" /> Posted ({postedCount})
+              </button>
 
-        {/* View Mode Icons - h-8 height container */}
-        <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
-          <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("grid"); }} title="Grid View" className="h-full w-7">
-            <LayoutGrid className="w-3.5 h-3.5" />
-          </Button>
-          <Button variant={viewMode === "table" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("table"); }} title="Table View" className="h-full w-7">
-            <List className="w-3.5 h-3.5" />
-          </Button>
-          <Button variant={viewMode === "calendar" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("calendar"); }} title="Calendar View" className="h-full w-7">
-            <CalendarIcon className="w-3.5 h-3.5" />
-          </Button>
-        </div>
-      </div>
+              <button
+                onClick={() => {
+                  playClick();
+                  setStatusFilter("scheduled");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
+                  statusFilter === "scheduled"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Clock className="w-3 h-3" /> Scheduled ({scheduledCount})
+              </button>
+            </div>
+
+            {/* Controls sub-row on mobile: Sort Dropdown & View Mode Switcher */}
+            <div className="flex items-center justify-between gap-2 w-full md:w-auto md:ml-auto shrink-0">
+              {/* Sort Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex-1 md:flex-initial inline-flex items-center justify-center rounded-md border border-border/80 bg-background hover:bg-muted text-foreground h-8 px-3 text-xs font-medium gap-1.5 cursor-pointer">
+                  <ArrowUpDown className="w-3.5 h-3.5" />
+                  <span className="capitalize">{sortBy}</span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-36">
+                  <DropdownMenuItem onClick={() => setSortBy("newest")}>Newest First</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy("oldest")}>Oldest First</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy("slides")}>Most Slides</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy("title")}>Alphabetical</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* View Mode Icons */}
+              <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
+                <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("grid"); }} title="Grid View" className="h-full w-8">
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                </Button>
+                <Button variant={viewMode === "table" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("table"); }} title="Table View" className="h-full w-8">
+                  <List className="w-3.5 h-3.5" />
+                </Button>
+                <Button variant={viewMode === "calendar" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("calendar"); }} title="Calendar View" className="h-full w-8">
+                  <CalendarIcon className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </FramePanel>
+      </Frame>
 
       {/* Main View Area */}
       {viewMode === "grid" && (

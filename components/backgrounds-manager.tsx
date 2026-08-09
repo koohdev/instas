@@ -121,138 +121,145 @@ export function BackgroundsManager({ activeBackground, onSelectBackground }: Bac
   return (
     <div className="flex flex-col gap-6 w-full animate-in fade-in duration-200 pb-12">
       {/* Top Hero Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-card via-card/90 to-primary/5 border border-border/80 shadow-md">
-        <div className="flex items-center gap-3.5 min-w-0">
-          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
-            <ImageIcon className="w-6 h-6" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg sm:text-xl font-bold font-heading text-foreground leading-tight">
-                Background Assets Library
-              </h2>
-              <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-xs font-mono font-bold">
-                {store.backgroundList.length} Asset{store.backgroundList.length === 1 ? "" : "s"}
-              </Badge>
+      <Frame variant="default" spacing="default" className="w-full">
+        <FramePanel className="p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
+                <ImageIcon className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-bold font-heading text-foreground leading-tight">
+                    Background Assets Library
+                  </h2>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-mono font-bold px-2 py-0.5">
+                    {store.backgroundList.length} Asset{store.backgroundList.length === 1 ? "" : "s"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                  Upload, inspect, and manage custom background image assets for Instagram carousel slides.
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-              Upload, inspect, and manage custom background image assets for Instagram carousel slides.
-            </p>
+
+            <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleFileUpload(e.target.files)}
+              />
+
+              <Button
+                onClick={() => {
+                  playClick();
+                  fileInputRef.current?.click();
+                }}
+                disabled={isUploading}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 text-xs font-bold h-9 px-4 cursor-pointer active:scale-[0.97] shadow-sm w-full md:w-auto justify-center shrink-0"
+              >
+                <Upload className="w-4 h-4" /> {isUploading ? "Uploading..." : "Upload Image"}
+              </Button>
+            </div>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => handleFileUpload(e.target.files)}
-          />
-
-          <Button
-            onClick={() => {
-              playClick();
-              fileInputRef.current?.click();
-            }}
-            disabled={isUploading}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 text-xs font-bold h-9 px-4 cursor-pointer active:scale-[0.97] shadow-sm shrink-0"
-          >
-            <Upload className="w-4 h-4" /> {isUploading ? "Uploading..." : "Upload Image"}
-          </Button>
-        </div>
-      </div>
+        </FramePanel>
+      </Frame>
 
       {/* Control Bar: Search, Filters, & Aspect Ratio Switcher - Standardized to h-8 height */}
-      <div className="flex items-center gap-2 bg-card p-2.5 rounded-xl border border-border/70 shadow-xs">
-        {/* Search */}
-        <div className="relative shrink-0 w-44 sm:w-60">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search backgrounds..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 text-xs h-8 bg-background/80 w-full"
-          />
-        </div>
+      <Frame variant="default" spacing="default" className="w-full">
+        <FramePanel className="p-3">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 w-full">
+            {/* Search */}
+            <div className="relative w-full md:w-60 shrink-0">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search backgrounds..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 text-xs h-8 bg-background/80 w-full"
+              />
+            </div>
 
-        {/* Divider */}
-        <div className="w-px h-6 bg-border/50 shrink-0 hidden sm:block" />
+            {/* Divider */}
+            <div className="hidden md:block w-px h-6 bg-border/50 shrink-0" />
 
-        {/* Status Filter Pills - h-8 height */}
-        <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
-          <button
-            onClick={() => {
-              playClick();
-              setStatusFilter("all");
-            }}
-            className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
-              statusFilter === "all"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            All ({store.backgroundList.length})
-          </button>
-          <button
-            onClick={() => {
-              playClick();
-              setStatusFilter("active");
-            }}
-            className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center gap-1 cursor-pointer ${
-              statusFilter === "active"
-                ? "bg-primary text-primary-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <CheckCircle2 className="w-3 h-3" /> Active in Studio
-          </button>
-        </div>
+            {/* Status Filter Pills - copied directly from url-library-tab */}
+            <div className="grid grid-cols-2 md:flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0 w-full md:w-auto">
+              <button
+                onClick={() => {
+                  playClick();
+                  setStatusFilter("all");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
+                  statusFilter === "all"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                All ({store.backgroundList.length})
+              </button>
+              <button
+                onClick={() => {
+                  playClick();
+                  setStatusFilter("active");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
+                  statusFilter === "active"
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <CheckCircle2 className="w-3 h-3" /> Active in Studio
+              </button>
+            </div>
 
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Aspect Ratio Switcher Toggle - h-8 height */}
-        <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
-          <span className="text-[10px] font-semibold text-muted-foreground px-2 hidden md:inline">Ratio:</span>
-          <button
-            onClick={() => {
-              playClick();
-              setAspectRatio("4/5");
-            }}
-            className={`h-full flex-none text-[11px] font-mono font-bold px-2 rounded transition-all flex items-center justify-center cursor-pointer ${
-              aspectRatio === "4/5" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-            }`}
-            title="4:5 Portrait Carousel Ratio"
-          >
-            4:5
-          </button>
-          <button
-            onClick={() => {
-              playClick();
-              setAspectRatio("1/1");
-            }}
-            className={`h-full flex-none text-[11px] font-mono font-bold px-2 rounded transition-all flex items-center justify-center cursor-pointer ${
-              aspectRatio === "1/1" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-            }`}
-            title="1:1 Square Ratio"
-          >
-            1:1
-          </button>
-          <button
-            onClick={() => {
-              playClick();
-              setAspectRatio("16/9");
-            }}
-            className={`h-full flex-none text-[11px] font-mono font-bold px-2 rounded transition-all flex items-center justify-center cursor-pointer ${
-              aspectRatio === "16/9" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-            }`}
-            title="16:9 Landscape Ratio"
-          >
-            16:9
-          </button>
-        </div>
-      </div>
+            {/* Aspect Ratio Switcher Toggle */}
+            <div className="flex items-center justify-between md:justify-end h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 w-full md:w-auto md:ml-auto shrink-0">
+              <span className="text-[10px] font-semibold text-muted-foreground px-2">Ratio:</span>
+              <div className="flex items-center gap-0.5 flex-1 md:flex-initial justify-end">
+                <button
+                  onClick={() => {
+                    playClick();
+                    setAspectRatio("4/5");
+                  }}
+                  className={`h-7 text-[11px] font-mono font-bold px-3 rounded transition-all flex items-center justify-center cursor-pointer ${
+                    aspectRatio === "4/5" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="4:5 Portrait Carousel Ratio"
+                >
+                  4:5
+                </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setAspectRatio("1/1");
+                  }}
+                  className={`h-7 text-[11px] font-mono font-bold px-3 rounded transition-all flex items-center justify-center cursor-pointer ${
+                    aspectRatio === "1/1" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="1:1 Square Carousel Ratio"
+                >
+                  1:1
+                </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setAspectRatio("16/9");
+                  }}
+                  className={`h-7 text-[11px] font-mono font-bold px-3 rounded transition-all flex items-center justify-center cursor-pointer ${
+                    aspectRatio === "16/9" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="16:9 Landscape Carousel Ratio"
+                >
+                  16:9
+                </button>
+              </div>
+            </div>
+          </div>
+        </FramePanel>
+      </Frame>
 
       {/* Drag & Drop Upload Zone */}
       <div

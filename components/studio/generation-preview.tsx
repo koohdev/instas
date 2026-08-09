@@ -400,17 +400,21 @@ export function GenerationPreview({ status }: { status: string }) {
   );
 
   return (
-    <Frame className="lg:sticky lg:top-24 w-full flex flex-col" variant="default" spacing="default">
+    <Frame className="w-full flex flex-col" variant="default" spacing="default">
       <FramePanel className="gap-4 flex flex-col p-4">
         {/* Header Toolbar Row */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
           {/* Left: Slide mode toggle */}
-          <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-lg border border-border">
+          <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
             <Button
               variant={previewSlideMode === "cover" ? "default" : "ghost"}
               size="sm"
               onClick={() => setPreviewSlideMode("cover")}
-              className="text-[11px] h-6 px-2.5 rounded-md font-semibold cursor-pointer"
+              className={`h-full text-xs font-semibold px-3 rounded-md cursor-pointer transition-all ${
+                previewSlideMode === "cover"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             >
               Cover Slide
             </Button>
@@ -418,7 +422,11 @@ export function GenerationPreview({ status }: { status: string }) {
               variant={previewSlideMode === "content" ? "default" : "ghost"}
               size="sm"
               onClick={() => setPreviewSlideMode("content")}
-              className="text-[11px] h-6 px-2.5 rounded-md font-semibold cursor-pointer"
+              className={`h-full text-xs font-semibold px-3 rounded-md cursor-pointer transition-all ${
+                previewSlideMode === "content"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             >
               Content Slide (01)
             </Button>
@@ -426,7 +434,7 @@ export function GenerationPreview({ status }: { status: string }) {
 
           <Badge
             variant="outline"
-            className="text-[10px] font-mono border-primary/40 text-primary capitalize"
+            className="text-[10px] font-mono border-primary/40 text-primary capitalize h-6 px-2"
           >
             {store.aspectRatio} · {store.settings.coverStyle}
           </Badge>
@@ -434,27 +442,27 @@ export function GenerationPreview({ status }: { status: string }) {
 
         {/* View Mode Toggle (Raw / Instagram) */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-lg border border-border flex-1">
+          <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 flex-1">
             <button
               onClick={() => setViewMode("raw")}
-              className={`flex-1 flex items-center justify-center gap-1.5 text-[11px] font-semibold py-1 rounded-md transition-all cursor-pointer ${
+              className={`flex-1 h-full flex items-center justify-center gap-1.5 text-xs font-semibold px-3 rounded-md transition-all cursor-pointer ${
                 viewMode === "raw"
-                  ? "bg-background text-foreground shadow-xs border border-border/60"
+                  ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Monitor className="w-3 h-3" />
+              <Monitor className="w-3.5 h-3.5" />
               Raw Slide View
             </button>
             <button
               onClick={() => setViewMode("instagram")}
-              className={`flex-1 flex items-center justify-center gap-1.5 text-[11px] font-semibold py-1 rounded-md transition-all cursor-pointer ${
+              className={`flex-1 h-full flex items-center justify-center gap-1.5 text-xs font-semibold px-3 rounded-md transition-all cursor-pointer ${
                 viewMode === "instagram"
                   ? "bg-gradient-to-r from-pink-600/90 to-purple-600/90 text-white shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Smartphone className="w-3 h-3" />
+              <Smartphone className="w-3.5 h-3.5" />
               Instagram Feed Frame
             </button>
           </div>

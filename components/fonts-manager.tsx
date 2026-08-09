@@ -134,182 +134,191 @@ export function FontsManager({ onSelectFont }: FontsManagerProps) {
   return (
     <div className="flex flex-col gap-6 w-full animate-in fade-in duration-200 pb-12">
       {/* Top Hero Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-card via-card/90 to-primary/5 border border-border/80 shadow-md">
-        <div className="flex items-center gap-3.5 min-w-0">
-          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
-            <Type className="w-6 h-6" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg sm:text-xl font-bold font-heading text-foreground leading-tight">
-                Custom Fonts &amp; Typography Lab
-              </h2>
-              <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-xs font-mono font-bold">
-                {Object.keys(familyMap).length} Famili{Object.keys(familyMap).length === 1 ? "y" : "es"}
-              </Badge>
+      <Frame variant="default" spacing="default" className="w-full">
+        <FramePanel className="p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 w-full">
+            {/* Left: Icon + Title */}
+            <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
+                <Type className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-bold font-heading text-foreground leading-tight">
+                    Custom Fonts &amp; Typography Lab
+                  </h2>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-mono font-bold px-2 py-0.5">
+                    {Object.keys(familyMap).length} Famili{Object.keys(familyMap).length === 1 ? "y" : "es"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                  Manage custom typography stored in <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded border border-primary/20">fonts/</code> folder with live <code className="text-primary font-mono">@font-face</code> slide rendering.
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-              Manage custom typography stored in <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded border border-primary/20">fonts/</code> folder with live <code className="text-primary font-mono">@font-face</code> slide rendering.
-            </p>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".ttf,.otf,.woff,.woff2,.eot"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+
+              <Button
+                onClick={() => {
+                  playClick();
+                  fileInputRef.current?.click();
+                }}
+                disabled={isUploading}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 text-xs font-bold h-9 px-4 cursor-pointer active:scale-[0.97] shadow-sm w-full sm:w-auto justify-center shrink-0"
+              >
+                <Upload className="w-4 h-4" /> {isUploading ? "Uploading Fonts..." : "Upload Font Files"}
+              </Button>
+            </div>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept=".ttf,.otf,.woff,.woff2,.eot"
-            className="hidden"
-            onChange={handleFileUpload}
-          />
-
-          <Button
-            onClick={() => {
-              playClick();
-              fileInputRef.current?.click();
-            }}
-            disabled={isUploading}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 text-xs font-bold h-9 px-4 cursor-pointer active:scale-[0.97] shadow-sm shrink-0"
-          >
-            <Upload className="w-4 h-4" /> {isUploading ? "Uploading Fonts..." : "Upload Font Files"}
-          </Button>
-        </div>
-      </div>
+        </FramePanel>
+      </Frame>
 
       {/* Control Bar: Search, Category Filters, Specimen Text, & Size Slider */}
-      <div className="flex flex-col gap-3 bg-card p-3 rounded-2xl border border-border/70 shadow-xs">
-        {/* Top Control Row */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Search */}
-          <div className="relative shrink-0 w-44 sm:w-60">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search fonts by family..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 text-xs h-8 bg-background/80 w-full"
-            />
-          </div>
-
-          {/* Category Filter Pills - h-8 height */}
-          <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
-            <button
-              onClick={() => {
-                playClick();
-                setFilterCategory("all");
-              }}
-              className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
-                filterCategory === "all"
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              All ({Object.keys(familyMap).length})
-            </button>
-
-            <button
-              onClick={() => {
-                playClick();
-                setFilterCategory("active");
-              }}
-              className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center gap-1 cursor-pointer ${
-                filterCategory === "active"
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <CheckCircle2 className="w-3 h-3" /> Active in Studio
-            </button>
-
-            <button
-              onClick={() => {
-                playClick();
-                setFilterCategory("system");
-              }}
-              className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
-                filterCategory === "system"
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              System
-            </button>
-
-            <button
-              onClick={() => {
-                playClick();
-                setFilterCategory("custom");
-              }}
-              className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
-                filterCategory === "custom"
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Custom
-            </button>
-          </div>
-
-          {/* Active Font Pill - h-8 height */}
-          <div className="h-8 ml-auto hidden lg:flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 px-3 rounded-lg border border-border/40 shrink-0">
-            <span className="text-[11px]">Active Studio Font:</span>
-            <span className="font-bold text-foreground font-mono" style={{ fontFamily: `'${activeFontFamily}', sans-serif` }}>
-              {activeFontFamily}
-            </span>
-          </div>
-        </div>
-
-        {/* Bottom Control Row: Specimen Text & Font Size Slider - Standardized to h-8 height */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/40">
-          {/* Specimen Input & Shortcuts */}
-          <div className="flex items-center gap-2 flex-1 min-w-[280px]">
-            <span className="text-xs font-semibold text-muted-foreground shrink-0">Specimen:</span>
-            <Input
-              placeholder="Type specimen text..."
-              value={specimenText}
-              onChange={(e) => setSpecimenText(e.target.value)}
-              className="text-xs h-8 bg-background/80 flex-1 min-w-[180px]"
-            />
-            {/* Quick Presets Dropdown/Pills - h-8 height */}
-            <div className="hidden xl:flex items-center gap-1">
-              {SPECIMEN_PRESETS.map((preset, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    playClick();
-                    setSpecimenText(preset);
-                  }}
-                  className="h-8 text-[11px] font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/80 px-2.5 rounded-lg border border-border/40 transition-colors truncate max-w-[130px] flex items-center justify-center cursor-pointer"
-                  title={preset}
-                >
-                  Preset #{idx + 1}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Font Size Slider - h-8 height */}
-          <div className="h-8 flex items-center gap-2.5 shrink-0 bg-muted/30 px-3 rounded-lg border border-border/40">
-            <Sliders className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-xs font-semibold text-muted-foreground shrink-0">Size:</span>
-            <div className="w-28 sm:w-36">
-              <Slider
-                value={[specimenSize]}
-                min={16}
-                max={44}
-                step={1}
-                onValueChange={(val) => {
-                  const num = Array.isArray(val) ? val[0] : (val as unknown as number);
-                  if (typeof num === "number") setSpecimenSize(num);
-                }}
-                className="cursor-pointer"
+      <Frame variant="default" spacing="default" className="w-full">
+        <FramePanel className="p-3 gap-3">
+          {/* Top Control Row */}
+          <div className="flex flex-col md:flex-row md:items-center gap-3 w-full">
+            {/* Search */}
+            <div className="relative w-full md:w-60 shrink-0">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search fonts by family..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-8 text-xs h-8 bg-background/80 w-full"
               />
             </div>
-            <span className="text-xs font-mono font-bold text-foreground w-8 text-right">{specimenSize}px</span>
+
+            {/* Category Filter Pills - copied directly from url-library-tab */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0 w-full md:w-auto">
+              <button
+                onClick={() => {
+                  playClick();
+                  setFilterCategory("all");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
+                  filterCategory === "all"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                All ({Object.keys(familyMap).length})
+              </button>
+
+              <button
+                onClick={() => {
+                  playClick();
+                  setFilterCategory("active");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
+                  filterCategory === "active"
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <CheckCircle2 className="w-3 h-3" /> Active
+              </button>
+
+              <button
+                onClick={() => {
+                  playClick();
+                  setFilterCategory("system");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
+                  filterCategory === "system"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                System
+              </button>
+
+              <button
+                onClick={() => {
+                  playClick();
+                  setFilterCategory("custom");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
+                  filterCategory === "custom"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Custom
+              </button>
+            </div>
+
+            {/* Active Font Pill - h-8 height */}
+            <div className="h-8 ml-auto hidden lg:flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 px-3 rounded-lg border border-border/40 shrink-0">
+              <span className="text-[11px]">Active Studio Font:</span>
+              <span className="font-bold text-foreground font-mono" style={{ fontFamily: `'${activeFontFamily}', sans-serif` }}>
+                {activeFontFamily}
+              </span>
+            </div>
           </div>
-        </div>
-      </div>
+
+          {/* Bottom Control Row: Specimen Text & Font Size Slider */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 border-t border-border/40 w-full">
+            {/* Specimen Input & Shortcuts */}
+            <div className="flex items-center gap-2 w-full md:flex-1">
+              <span className="text-xs font-semibold text-muted-foreground shrink-0">Specimen:</span>
+              <Input
+                placeholder="Type specimen text..."
+                value={specimenText}
+                onChange={(e) => setSpecimenText(e.target.value)}
+                className="text-xs h-8 bg-background/80 flex-1 w-full"
+              />
+              {/* Quick Presets Dropdown/Pills */}
+              <div className="hidden xl:flex items-center gap-1">
+                {SPECIMEN_PRESETS.map((preset, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      playClick();
+                      setSpecimenText(preset);
+                    }}
+                    className="h-8 text-[11px] font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/80 px-2.5 rounded-lg border border-border/40 transition-colors truncate max-w-[130px] flex items-center justify-center cursor-pointer"
+                    title={preset}
+                  >
+                    Preset #{idx + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Font Size Slider - 100% width on mobile/tablet */}
+            <div className="h-9 md:h-8 flex items-center justify-between md:justify-start gap-2.5 bg-muted/30 px-3 rounded-lg border border-border/40 w-full md:w-auto shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Sliders className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-xs font-semibold text-muted-foreground">Size:</span>
+              </div>
+              <div className="flex-1 md:w-36 max-w-full">
+                <Slider
+                  value={[specimenSize]}
+                  min={16}
+                  max={44}
+                  step={1}
+                  onValueChange={(val) => {
+                    const num = Array.isArray(val) ? val[0] : (val as unknown as number);
+                    if (typeof num === "number") setSpecimenSize(num);
+                  }}
+                  className="cursor-pointer"
+                />
+              </div>
+              <span className="text-xs font-mono font-bold text-foreground w-8 text-right shrink-0">{specimenSize}px</span>
+            </div>
+          </div>
+        </FramePanel>
+      </Frame>
 
       {/* Grid of Font Family Cards */}
       {families.length === 0 ? (

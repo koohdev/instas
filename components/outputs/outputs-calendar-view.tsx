@@ -104,10 +104,10 @@ export function OutputsCalendarView({ items, onSelectBatch }: OutputsCalendarVie
       </div>
 
       {/* Calendar Days Grid */}
-      <div className="grid grid-cols-7 gap-1.5 min-h-[480px]">
+      <div className="grid grid-cols-7 gap-1 sm:gap-1.5 min-h-0 md:min-h-[480px]">
         {calendarCells.map((cell, idx) => {
           if (cell.isPadding) {
-            return <div key={`pad-${idx}`} className="bg-muted/10 rounded-lg border border-transparent min-h-[90px]" />;
+            return <div key={`pad-${idx}`} className="bg-muted/10 rounded-lg border border-transparent aspect-square md:aspect-auto md:min-h-[90px]" />;
           }
 
           const dayItems = itemsByDate[cell.dateKey] || [];
@@ -116,7 +116,7 @@ export function OutputsCalendarView({ items, onSelectBatch }: OutputsCalendarVie
           return (
             <div
               key={cell.dateKey}
-              className={`flex flex-col gap-1.5 p-2 rounded-lg border min-h-[95px] transition-all overflow-hidden ${
+              className={`flex flex-col gap-1 p-1 sm:p-2 rounded-lg border aspect-square md:aspect-auto md:min-h-[95px] transition-all overflow-hidden ${
                 isToday
                   ? "border-primary/60 bg-primary/5 ring-1 ring-primary/20"
                   : "border-border/50 bg-card/60 hover:border-border/80 hover:bg-muted/20"

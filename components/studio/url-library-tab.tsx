@@ -333,122 +333,124 @@ export function UrlLibraryTab() {
       </div>
 
       {/* Control Bar: Search, Status Filters, Category Pills, & Selection Controls */}
-      <div className="flex flex-col gap-3 bg-card p-3 rounded-2xl border border-border/70 shadow-xs">
-        {/* Search Row */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <Input
-              placeholder="Search by title, URL, domain, or category..."
-              value={urlSearchQuery}
-              onChange={(e) => setUrlSearchQuery(e.target.value)}
-              className="pl-8 text-xs h-8 bg-background/80 w-full"
-            />
-          </div>
+      <Frame variant="default" spacing="default" className="w-full">
+        <FramePanel className="p-3 gap-3">
+          {/* Search Row */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 w-full">
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Search by title, URL, domain, or category..."
+                value={urlSearchQuery}
+                onChange={(e) => setUrlSearchQuery(e.target.value)}
+                className="pl-8 text-xs h-8 bg-background/80 w-full"
+              />
+            </div>
 
-          {/* Select All & Selection Actions */}
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleToggleSelectAll}
-              className="text-xs h-8 px-3 gap-1.5 border-border hover:bg-muted font-semibold cursor-pointer active:scale-[0.97]"
-            >
-              {allFilteredSelected ? (
-                <>
-                  <CheckSquare className="w-3.5 h-3.5 text-primary" /> Deselect All
-                </>
-              ) : (
-                <>
-                  <Square className="w-3.5 h-3.5 text-muted-foreground" /> Select All ({filteredUrls.length})
-                </>
-              )}
-            </Button>
-
-            {store.selectedSavedUrlIds.length > 0 && (
+            {/* Select All & Selection Actions */}
+            <div className="flex items-center gap-2 shrink-0">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                onClick={() => {
-                  playClick();
-                  store.setSelectedSavedUrlIds([]);
-                }}
-                className="text-xs h-8 px-2.5 text-muted-foreground hover:text-foreground cursor-pointer active:scale-[0.97]"
+                onClick={handleToggleSelectAll}
+                className="text-xs h-8 px-3 gap-1.5 border-border hover:bg-muted font-semibold cursor-pointer active:scale-[0.97]"
               >
-                Clear Selection ({store.selectedSavedUrlIds.length})
+                {allFilteredSelected ? (
+                  <>
+                    <CheckSquare className="w-3.5 h-3.5 text-primary" /> Deselect All
+                  </>
+                ) : (
+                  <>
+                    <Square className="w-3.5 h-3.5 text-muted-foreground" /> Select All ({filteredUrls.length})
+                  </>
+                )}
               </Button>
-            )}
-          </div>
-        </div>
 
-        {/* Filters Row: Status Pills & Category Tabs - Standardized to h-8 height */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2.5 border-t border-border/40">
-          {/* Status Filter Pills - h-8 height */}
-          <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
-            <button
-              onClick={() => {
-                playClick();
-                setStatusFilter("all");
-              }}
-              className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
-                statusFilter === "all"
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              All ({totalCount})
-            </button>
-
-            <button
-              onClick={() => {
-                playClick();
-                setStatusFilter("done");
-              }}
-              className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer ${
-                statusFilter === "done"
-                  ? "bg-emerald-600 text-white shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <CheckCircle2 className="w-3 h-3" /> Output Generated ({doneCount})
-            </button>
-
-            <button
-              onClick={() => {
-                playClick();
-                setStatusFilter("pending");
-              }}
-              className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer ${
-                statusFilter === "pending"
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Clock className="w-3 h-3 opacity-60" /> Not Processed ({pendingCount})
-            </button>
+              {store.selectedSavedUrlIds.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    playClick();
+                    store.setSelectedSavedUrlIds([]);
+                  }}
+                  className="text-xs h-8 px-2.5 text-muted-foreground hover:text-foreground cursor-pointer active:scale-[0.97]"
+                >
+                  Clear Selection ({store.selectedSavedUrlIds.length})
+                </Button>
+              )}
+            </div>
           </div>
 
-          {/* Category Filter Pills - h-8 height */}
-          <div className="flex items-center gap-1 flex-wrap">
-            {Array.from(new Set(["All", ...store.savedUrls.map((u) => u.category || "General")])).map((cat) => (
+          {/* Filters Row: Status Pills & Category Tabs - Standardized to h-8 height */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2.5 border-t border-border/40 w-full">
+            {/* Status Filter Pills - h-8 height */}
+            <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
               <button
-                key={cat}
                 onClick={() => {
                   playClick();
-                  setSelectedCategoryFilter(cat);
+                  setStatusFilter("all");
                 }}
-                className={`h-8 text-[11px] font-semibold px-3 rounded-full transition-all flex items-center justify-center cursor-pointer ${
-                  selectedCategoryFilter === cat
-                    ? "bg-primary text-primary-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/80 border border-border/40"
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
+                  statusFilter === "all"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {cat}
+                All ({totalCount})
               </button>
-            ))}
+
+              <button
+                onClick={() => {
+                  playClick();
+                  setStatusFilter("done");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer ${
+                  statusFilter === "done"
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <CheckCircle2 className="w-3 h-3" /> Output Generated ({doneCount})
+              </button>
+
+              <button
+                onClick={() => {
+                  playClick();
+                  setStatusFilter("pending");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer ${
+                  statusFilter === "pending"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Clock className="w-3 h-3 opacity-60" /> Not Processed ({pendingCount})
+              </button>
+            </div>
+
+            {/* Category Filter Pills - h-8 height */}
+            <div className="flex items-center gap-1 flex-wrap">
+              {Array.from(new Set(["All", ...store.savedUrls.map((u) => u.category || "General")])).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => {
+                    playClick();
+                    setSelectedCategoryFilter(cat);
+                  }}
+                  className={`h-8 text-[11px] font-semibold px-3 rounded-full transition-all flex items-center justify-center cursor-pointer ${
+                    selectedCategoryFilter === cat
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/80 border border-border/40"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      </div>
+        </FramePanel>
+      </Frame>
 
       {/* URL Cards Grid */}
       {filteredUrls.length === 0 ? (
@@ -489,7 +491,28 @@ export function UrlLibraryTab() {
                     {/* Header Row: Title & Checkbox */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <Globe className="w-4 h-4 text-primary/70 shrink-0" />
+                        {(() => {
+                          try {
+                            const domain = new URL(item.url).hostname;
+                            const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+                            return (
+                              <img
+                                src={faviconUrl}
+                                alt=""
+                                className="w-4 h-4 rounded shrink-0 object-contain"
+                                onError={(e) => {
+                                  // Hide broken favicon image and show fallback Globe icon
+                                  (e.target as HTMLElement).style.display = "none";
+                                  const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                                  if (fallback) fallback.style.display = "inline-block";
+                                }}
+                              />
+                            );
+                          } catch {
+                            return null;
+                          }
+                        })()}
+                        <Globe className="w-4 h-4 text-primary/70 shrink-0 hidden" />
                         <span className="font-bold text-sm text-foreground truncate">{item.title}</span>
                       </div>
 

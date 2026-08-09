@@ -54,8 +54,8 @@ function SheetContent({
         data-side={side}
         className={cn(
           "fixed z-50 flex flex-col gap-4 bg-popover text-sm text-popover-foreground shadow-2xl transition duration-200 ease-in-out data-ending-style:opacity-0 data-starting-style:opacity-0",
-          side === "right" && "top-2.5 bottom-2.5 right-2.5 h-[calc(100vh-20px)] max-h-[calc(100vh-20px)] w-full max-w-[460px] sm:max-w-[480px] border border-border/80 rounded-[var(--radius-xl)] overflow-hidden data-ending-style:translate-x-[2.5rem] data-starting-style:translate-x-[2.5rem]",
-          side === "left" && "top-2.5 bottom-2.5 left-2.5 h-[calc(100vh-20px)] max-h-[calc(100vh-20px)] w-full max-w-[460px] sm:max-w-[480px] border border-border/80 rounded-[var(--radius-xl)] overflow-hidden data-ending-style:translate-x-[-2.5rem] data-starting-style:translate-x-[-2.5rem]",
+          side === "right" && "top-0 sm:top-2.5 bottom-0 sm:bottom-2.5 right-0 sm:right-2.5 h-full sm:h-[calc(100vh-20px)] max-h-full sm:max-h-[calc(100vh-20px)] w-full max-w-[calc(100vw-1rem)] sm:max-w-[480px] border-l sm:border border-border/80 rounded-none sm:rounded-[var(--radius-xl)] overflow-hidden data-ending-style:translate-x-[2.5rem] data-starting-style:translate-x-[2.5rem]",
+          side === "left" && "top-0 sm:top-2.5 bottom-0 sm:bottom-2.5 left-0 sm:left-2.5 h-full sm:h-[calc(100vh-20px)] max-h-full sm:max-h-[calc(100vh-20px)] w-full max-w-[calc(100vw-1rem)] sm:max-w-[480px] border-r sm:border border-border/80 rounded-none sm:rounded-[var(--radius-xl)] overflow-hidden data-ending-style:translate-x-[-2.5rem] data-starting-style:translate-x-[-2.5rem]",
           side === "top" && "inset-x-0 top-0 h-auto border-b data-ending-style:translate-y-[-2.5rem] data-starting-style:translate-y-[-2.5rem]",
           side === "bottom" && "inset-x-0 bottom-0 h-auto border-t data-ending-style:translate-y-[2.5rem] data-starting-style:translate-y-[2.5rem]",
           className

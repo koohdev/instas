@@ -83,15 +83,15 @@ export function StudioConfigurator({
       <FramePanel className="gap-6 p-5 sm:p-6">
         {/* Header with Studio Launchpad Actions */}
         <div className="flex items-center justify-between pb-4 border-b border-border/50 gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-xs">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
               <Sliders className="w-5 h-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold font-heading text-foreground leading-none">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-lg font-bold font-heading text-foreground leading-tight">
                   Studio Configurator
-                </h3>
+                </h2>
                 <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-mono font-bold px-2 py-0.5">
                   {urlList.length} URL{urlList.length === 1 ? "" : "s"} Staged
                 </Badge>
@@ -102,7 +102,7 @@ export function StudioConfigurator({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 w-full md:w-auto shrink-0 mt-2 md:mt-0">
             <Button
               variant={studioViewMode === "canvas" ? "default" : "outline"}
               size="sm"
@@ -110,7 +110,7 @@ export function StudioConfigurator({
                 playClick();
                 onStudioViewModeChange?.(studioViewMode === "canvas" ? "form" : "canvas");
               }}
-              className={`gap-1.5 text-xs font-bold h-8 px-3 cursor-pointer active:scale-[0.97] transition-all ${
+              className={`gap-1.5 text-xs font-semibold h-8 px-3 cursor-pointer active:scale-[0.97] transition-all w-full md:w-auto justify-center ${
                 studioViewMode === "canvas"
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -128,24 +128,10 @@ export function StudioConfigurator({
                 playClick();
                 onOpenStagingDrawer?.();
               }}
-              className="gap-1.5 text-xs border-primary/30 text-primary hover:bg-primary/10 font-bold h-8 px-3 cursor-pointer active:scale-[0.97] transition-all"
+              className="gap-1.5 text-xs border-primary/30 text-primary hover:bg-primary/10 font-semibold h-8 px-3 cursor-pointer active:scale-[0.97] transition-all w-full md:w-auto justify-center"
               title="Open Staging Drawer"
             >
-              <Bookmark className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Staging</span>
-            </Button>
-
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                playClick();
-                onOpenPresetDialog?.();
-              }}
-              className="gap-1.5 text-xs font-bold h-8 px-3 cursor-pointer active:scale-[0.97] transition-all"
-              title="Save Current Settings as Template"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
-              <span className="hidden sm:inline">Save Template</span>
+              <Bookmark className="w-3.5 h-3.5" /> <span>Staging Drawer</span>
             </Button>
           </div>
         </div>

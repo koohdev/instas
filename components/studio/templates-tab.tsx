@@ -101,119 +101,127 @@ export function TemplatesTab() {
   return (
     <div className="flex flex-col gap-6 w-full animate-in fade-in duration-200 pb-12">
       {/* Hero Header Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-card via-card/90 to-primary/5 border border-border/80 shadow-md">
-        <div className="flex items-center gap-3.5 min-w-0">
-          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
-            <Layers className="w-6 h-6" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg sm:text-xl font-bold font-heading text-foreground leading-tight">
-                Design Templates Hub
-              </h2>
-              <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-xs font-mono font-bold">
-                {store.templates.length} Preset{store.templates.length === 1 ? "" : "s"}
-              </Badge>
+      <Frame variant="default" spacing="default" className="w-full">
+        <FramePanel className="p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
+                <Layers className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-bold font-heading text-foreground leading-tight">
+                    Design Templates Hub
+                  </h2>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-mono font-bold px-2 py-0.5">
+                    {store.templates.length} Preset{store.templates.length === 1 ? "" : "s"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                  Visually edit typography, branding overlays, backgrounds, and layout styles for Instagram carousels.
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-              Visually edit typography, branding overlays, backgrounds, and layout styles for Instagram carousels.
-            </p>
-          </div>
-        </div>
 
-        <Button
-          onClick={() => {
-            playClick();
-            setIsDialogOpen(true);
-          }}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 text-xs font-bold h-9 px-4 cursor-pointer active:scale-[0.97] shadow-sm shrink-0"
-        >
-          <Plus className="w-4 h-4" /> Save Current as Template
-        </Button>
-      </div>
+            <Button
+              onClick={() => {
+                playClick();
+                setIsDialogOpen(true);
+              }}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 text-xs font-bold h-9 px-4 cursor-pointer active:scale-[0.97] shadow-sm w-full sm:w-auto shrink-0 justify-center"
+            >
+              <Plus className="w-4 h-4" /> Save Current as Template
+            </Button>
+          </div>
+        </FramePanel>
+      </Frame>
 
       {/* Control Bar: Search & Filter Tabs - Standardized to h-8 height */}
-      <div className="flex items-center gap-2 bg-card p-2.5 rounded-xl border border-border/70 shadow-xs">
-        {/* Search */}
-        <div className="relative shrink-0 w-48 sm:w-64">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search templates..."
-            className="pl-8 h-8 text-xs bg-background/80 w-full"
-          />
-        </div>
+      <Frame variant="default" spacing="default" className="w-full">
+        <FramePanel className="p-2.5">
+          <div className="flex items-center gap-2 w-full">
+            {/* Search */}
+            <div className="relative shrink-0 w-48 sm:w-64">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search templates..."
+                className="pl-8 h-8 text-xs bg-background/80 w-full"
+              />
+            </div>
 
-        {/* Divider */}
-        <div className="w-px h-6 bg-border/50 shrink-0 hidden sm:block" />
+            {/* Divider */}
+            <div className="w-px h-6 bg-border/50 shrink-0 hidden sm:block" />
 
-        {/* Category Pills - h-8 height */}
-        <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
-          <button
-            onClick={() => {
-              playClick();
-              setFilterCategory("all");
-            }}
-            className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
-              filterCategory === "all"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            All ({store.templates.length})
-          </button>
+            {/* Category Pills - h-8 height */}
+            <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
+              <button
+                onClick={() => {
+                  playClick();
+                  setFilterCategory("all");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
+                  filterCategory === "all"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                All ({store.templates.length})
+              </button>
 
-          <button
-            onClick={() => {
-              playClick();
-              setFilterCategory("active");
-            }}
-            className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center gap-1 cursor-pointer ${
-              filterCategory === "active"
-                ? "bg-primary text-primary-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <CheckCircle2 className="w-3 h-3" /> Active
-          </button>
+              <button
+                onClick={() => {
+                  playClick();
+                  setFilterCategory("active");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center gap-1 cursor-pointer ${
+                  filterCategory === "active"
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <CheckCircle2 className="w-3 h-3" /> Active
+              </button>
 
-          <button
-            onClick={() => {
-              playClick();
-              setFilterCategory("default");
-            }}
-            className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
-              filterCategory === "default"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Default
-          </button>
+              <button
+                onClick={() => {
+                  playClick();
+                  setFilterCategory("default");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
+                  filterCategory === "default"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Default
+              </button>
 
-          <button
-            onClick={() => {
-              playClick();
-              setFilterCategory("custom");
-            }}
-            className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
-              filterCategory === "custom"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Custom
-          </button>
-        </div>
+              <button
+                onClick={() => {
+                  playClick();
+                  setFilterCategory("custom");
+                }}
+                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
+                  filterCategory === "custom"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Custom
+              </button>
+            </div>
 
-        {activeTemplate && (
-          <div className="h-8 ml-auto hidden md:flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 px-3 rounded-lg border border-border/40 shrink-0">
-            <span className="text-[11px]">Active Preset:</span>
-            <span className="font-bold text-foreground font-mono">{activeTemplate.name}</span>
+            {activeTemplate && (
+              <div className="h-8 ml-auto hidden md:flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 px-3 rounded-lg border border-border/40 shrink-0">
+                <span className="text-[11px]">Active Preset:</span>
+                <span className="font-bold text-foreground font-mono">{activeTemplate.name}</span>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </FramePanel>
+      </Frame>
 
       {/* Template Cards Grid with Visual Mini-Canvas Previews */}
       {filteredTemplates.length === 0 ? (
