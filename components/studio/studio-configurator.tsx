@@ -52,9 +52,6 @@ export function StudioConfigurator() {
           <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
             <Sliders className="w-4 h-4 text-primary" /> Studio Configurator
           </h3>
-          <Badge variant="outline" className="text-[10px] font-mono border-primary/30 text-primary">
-            {urlList.length} site{urlList.length !== 1 ? "s" : ""} staged
-          </Badge>
         </div>
 
         {/* UNIFIED CONTINUOUS FLOW (NO TAB SWITCHING) */}
@@ -183,7 +180,7 @@ export function StudioConfigurator() {
                     onClick={() => store.setAspectRatio(value)}
                     className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-lg text-center transition-all duration-200 ${
                       store.aspectRatio === value
-                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+                        ? "bg-primary text-primary-foreground font-bold"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                     }`}
                   >

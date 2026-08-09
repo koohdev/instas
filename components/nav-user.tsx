@@ -31,20 +31,27 @@ import {
   LogOutIcon,
   SunIcon,
   MoonIcon,
+  Volume2Icon,
+  VolumeXIcon,
+  RotateCcwIcon,
 } from "lucide-react"
+import { useSoundContext } from "@/components/sound-provider"
 
 export function NavUser({
   user,
+  onSyncStore,
 }: {
   user: {
     name: string
     email: string
     avatar: string
   }
+  onSyncStore?: () => void
 }) {
   const { isMobile } = useSidebar()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const { isMuted, toggleMute } = useSoundContext()
 
   useEffect(() => {
     setMounted(true)
@@ -95,6 +102,12 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              {onSyncStore && (
+                <DropdownMenuItem onClick={onSyncStore} className="cursor-pointer">
+                  <RotateCcwIcon className="size-4 text-primary" />
+                  <span>Sync Store Data</span>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem>
                 <CircleUserRoundIcon />
                 Account
@@ -109,8 +122,25 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              {/* Sound Effects Toggle */}
+              <DropdownMenuItem
+                onClick={toggleMute}
+                onSelect={(e) => e.preventDefault()}
+                className="cursor-pointer flex items-center justify-between py-2"
+              >
+                <div className="flex items-center gap-2">
+                  {isMuted ? (
+                    <VolumeXIcon className="size-4 text-muted-foreground" />
+                  ) : (
+                    <Volume2Icon className="size-4 text-primary" />
+                  )}
+                  <span className="text-xs font-medium">Sound Effects</span>
+                </div>
+                <Switch checked={!isMuted} onCheckedChange={toggleMute} />
+              </DropdownMenuItem>
+
+              {/* Dark Mode Toggle */}
               <DropdownMenuItem
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 onSelect={(e) => e.preventDefault()}

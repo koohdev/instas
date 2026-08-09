@@ -85,7 +85,12 @@ export function AppShell({ activeRoute }: AppShellProps) {
           "--header-height": "calc(var(--spacing) * 16)",
         } as React.CSSProperties}
       >
-        <AppSidebar activeTab={currentTab} setActiveTab={handleNavigateTab} variant="inset" />
+        <AppSidebar
+          activeTab={currentTab}
+          setActiveTab={handleNavigateTab}
+          onSyncStore={store.fetchData}
+          variant="inset"
+        />
         <SidebarInset>
           <SiteHeader
             activeTab={currentTab}

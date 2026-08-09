@@ -73,7 +73,7 @@ export function GenerationPreview({ status }: { status: string }) {
 
   const SlideCanvas = (
     <div
-      className={`${aspectClass} w-full rounded-2xl overflow-hidden border border-border/80 relative shadow-2xl flex items-center justify-center`}
+      className={`${aspectClass} w-full rounded-none overflow-hidden border border-border/80 relative shadow-2xl flex items-center justify-center`}
       style={{
         backgroundColor: cardOuterBg,
         padding: `${cardPaddingRatio}%`,

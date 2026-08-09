@@ -22,10 +22,12 @@ import { LayoutDashboardIcon, Settings2Icon, CircleHelpIcon, SearchIcon, Databas
 export function AppSidebar({ 
   activeTab, 
   setActiveTab, 
+  onSyncStore,
   ...props 
 }: React.ComponentProps<typeof Sidebar> & { 
   activeTab: string; 
   setActiveTab: (val: string) => void;
+  onSyncStore?: () => void;
 }) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -115,11 +117,14 @@ export function AppSidebar({
         ]} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={{
-          name: "Admin",
-          email: "admin@instascrape.app",
-          avatar: ""
-        }} />
+        <NavUser
+          user={{
+            name: "Admin",
+            email: "admin@instascrape.app",
+            avatar: "",
+          }}
+          onSyncStore={onSyncStore}
+        />
       </SidebarFooter>
     </Sidebar>
   )
