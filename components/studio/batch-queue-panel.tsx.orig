@@ -48,6 +48,7 @@ export function BatchQueuePanel() {
     const urls = urlsInput
       .split("\n")
       .map((u) => u.trim())
+<<<<<<< Updated upstream
       .filter(Boolean);
     if (urls.length === 0) return;
 
@@ -66,6 +67,13 @@ export function BatchQueuePanel() {
       return;
     }
 
+=======
+      .filter((u) => Boolean(u) && /^https?:\/\//i.test(u));
+    if (urls.length === 0) {
+      alert("No valid URLs found. Please ensure each URL starts with http:// or https://");
+      return;
+    }
+>>>>>>> Stashed changes
     store.enqueueBatch(urls, batchNameInput || "");
     setUrlsInput("");
     setBatchNameInput("");
