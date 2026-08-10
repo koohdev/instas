@@ -269,25 +269,58 @@ export const useAppStore = create<AppState>()(
         }, 1200);
 
         try {
-          const res = await fetch("/api/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              urls: urlList,
-              batchName: get().batchName,
-              aspectRatio: get().aspectRatio,
-              ...get().settings,
-            }),
-          });
+          const chunkSize = 5;
+          const chunks = [];
+          for (let i = 0; i < urlList.length; i += chunkSize) {
+            chunks.push(urlList.slice(i, i + chunkSize));
+          }
+
+          let currentOutputDir = "";
+          let finalData = null;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          let allSlides: any[] = [];
+
+          for (let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            const startIndex = i * chunkSize;
+
+            const res = await fetch("/api/generate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                urls: chunk,
+                batchName: get().batchName,
+                aspectRatio: get().aspectRatio,
+                ...get().settings,
+                chunkIndex: i,
+                totalChunks: chunks.length,
+                providedOutputDir: currentOutputDir,
+                startIndex,
+                fullUrlList: urlList,
+              }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Generation failed");
+
+            if (i === 0) {
+              currentOutputDir = data.outputDir;
+            }
+
+            allSlides = allSlides.concat(data.slides || []);
+            finalData = data;
+          }
 
           clearInterval(tick);
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Generation failed");
+
+          if (finalData) {
+            finalData.slides = allSlides; // Combine all slide results for the UI
+          }
 
           set({
             generationProgress: 100,
             generationStatusMessage: "Carousel Batch Generated",
-            generationResult: data,
+            generationResult: finalData,
             generationStatus: "success",
           });
 
@@ -427,22 +460,55 @@ export const useAppStore = create<AppState>()(
           }));
 
           try {
-            const res = await fetch("/api/generate", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                urls: item.urls,
-                batchName: item.batchName,
-                aspectRatio: get().aspectRatio,
-                ...get().settings,
-              }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Generation failed");
+            const chunkSize = 5;
+            const chunks = [];
+            for (let i = 0; i < item.urls.length; i += chunkSize) {
+              chunks.push(item.urls.slice(i, i + chunkSize));
+            }
+
+            let currentOutputDir = "";
+            let finalData = null;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let allSlides: any[] = [];
+
+            for (let i = 0; i < chunks.length; i++) {
+              const chunk = chunks[i];
+              const startIndex = i * chunkSize;
+
+              const res = await fetch("/api/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  urls: chunk,
+                  batchName: item.batchName,
+                  aspectRatio: get().aspectRatio,
+                  ...get().settings,
+                  chunkIndex: i,
+                  totalChunks: chunks.length,
+                  providedOutputDir: currentOutputDir,
+                  startIndex,
+                  fullUrlList: item.urls,
+                }),
+              });
+
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || "Generation failed");
+
+              if (i === 0) {
+                currentOutputDir = data.outputDir;
+              }
+
+              allSlides = allSlides.concat(data.slides || []);
+              finalData = data;
+            }
+
+            if (finalData) {
+              finalData.slides = allSlides;
+            }
 
             set((state) => ({
               batchQueue: state.batchQueue.map((i) =>
-                i.id === item.id ? { ...i, status: "done", result: data } : i
+                i.id === item.id ? { ...i, status: "done", result: finalData } : i
               ) as BatchQueueItem[],
             }));
 

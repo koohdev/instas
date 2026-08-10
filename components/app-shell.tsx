@@ -156,8 +156,8 @@ export function AppShell({ activeRoute }: AppShellProps) {
                         <CanvasFlowEditor />
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_480px] 2xl:grid-cols-[1fr_540px] gap-8 w-full items-start">
-                        <div className="flex flex-col gap-6 w-full">
+                      <div className="flex flex-col lg:grid lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_480px] 2xl:grid-cols-[1fr_540px] gap-8 w-full items-start">
+                        <div className="flex flex-col gap-6 w-full max-w-full overflow-hidden">
                           <StudioConfigurator
                             studioViewMode={studioViewMode}
                             onStudioViewModeChange={setStudioViewMode}
@@ -166,7 +166,9 @@ export function AppShell({ activeRoute }: AppShellProps) {
                           />
                           <GenerationStatus />
                         </div>
-                        <GenerationPreview status="idle" />
+                        <div className="w-full lg:sticky lg:top-6 lg:z-10">
+                          <GenerationPreview status="idle" />
+                        </div>
                       </div>
                     )}
                   </div>

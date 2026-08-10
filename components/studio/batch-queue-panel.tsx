@@ -48,8 +48,11 @@ export function BatchQueuePanel() {
     const urls = urlsInput
       .split("\n")
       .map((u) => u.trim())
-      .filter(Boolean);
-    if (urls.length === 0) return;
+      .filter((u) => Boolean(u) && /^https?:\/\//i.test(u));
+    if (urls.length === 0) {
+      alert("No valid URLs found. Please ensure each URL starts with http:// or https://");
+      return;
+    }
     store.enqueueBatch(urls, batchNameInput || "");
     setUrlsInput("");
     setBatchNameInput("");
@@ -117,14 +120,14 @@ export function BatchQueuePanel() {
                 className="font-mono text-xs bg-muted/20 border-border resize-none"
               />
               <p className="text-[10px] text-muted-foreground">
-                {urlsInput.split("\n").filter((u) => u.trim()).length} URL(s) → 1 carousel (cover + content slides)
+                {urlsInput.split("\n").filter((u) => u.trim() && /^https?:\/\//i.test(u)).length} valid URL(s) → 1 carousel
               </p>
             </div>
 
             <Button
               size="sm"
               onClick={handleAddBatch}
-              disabled={!urlsInput.trim()}
+              disabled={!urlsInput.trim() || urlsInput.split("\n").filter((u) => u.trim() && /^https?:\/\//i.test(u)).length === 0}
               className="h-8 text-xs gap-1.5 w-full"
             >
               <Plus className="w-3.5 h-3.5" /> Add to Queue
