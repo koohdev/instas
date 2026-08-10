@@ -83,10 +83,10 @@ export function OutputsCalendarView({ items, onSelectBatch }: OutputsCalendarVie
           <Button variant="outline" size="xs" onClick={handleToday} className="h-7 px-2.5 text-xs font-semibold">
             Today
           </Button>
-          <Button variant="outline" size="icon-xs" onClick={handlePrevMonth} className="size-7">
+          <Button variant="outline" size="icon-xs" onClick={handlePrevMonth} className="size-7" aria-label="Previous month">
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <Button variant="outline" size="icon-xs" onClick={handleNextMonth} className="size-7">
+          <Button variant="outline" size="icon-xs" onClick={handleNextMonth} className="size-7" aria-label="Next month">
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
