@@ -1,0 +1,68 @@
+
+> instascrape@0.1.0 dev
+> next dev -H 0.0.0.0
+
+▲ Next.js 16.3.0 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+✓ Ready in 576ms
+✓ Running next.config.ts took 48ms
+- Experiments (use with caution):
+  ✓ turbopackLocalPostcssConfig
+
+○ Compiling / ...
+ GET / 200 in 7.1s (next.js: 6.4s, application-code: 765ms)
+ GET /api/outputs 200 in 1849ms (next.js: 1797ms, application-code: 51ms)
+ GET /api/urls 200 in 1981ms (next.js: 1970ms, application-code: 12ms)
+ GET /api/backgrounds 200 in 2.1s (next.js: 2.1s, application-code: 10ms)
+ GET /api/fonts 200 in 2.2s (next.js: 2.2s, application-code: 12ms)
+ GET /api/templates 200 in 2.3s (next.js: 2.3s, application-code: 7ms)
+ GET /api/outputs 200 in 19ms (next.js: 8ms, application-code: 11ms)
+ GET /api/urls 200 in 28ms (next.js: 21ms, application-code: 7ms)
+ GET /api/backgrounds 200 in 43ms (next.js: 36ms, application-code: 7ms)
+ GET /api/fonts 200 in 82ms (next.js: 48ms, application-code: 34ms)
+ GET /api/templates 200 in 91ms (next.js: 84ms, application-code: 6ms)
+ GET / 200 in 130ms (next.js: 6ms, application-code: 124ms)
+ GET /api/templates 200 in 10ms (next.js: 4ms, application-code: 6ms)
+ GET /api/urls 200 in 18ms (next.js: 15ms, application-code: 4ms)
+ GET /api/backgrounds 200 in 14ms (next.js: 11ms, application-code: 4ms)
+ GET /api/fonts 200 in 13ms (next.js: 9ms, application-code: 4ms)
+ GET /api/outputs 200 in 19ms (next.js: 16ms, application-code: 4ms)
+ GET /api/templates 200 in 9ms (next.js: 5ms, application-code: 4ms)
+ GET /api/backgrounds 200 in 14ms (next.js: 10ms, application-code: 4ms)
+ GET /api/urls 200 in 19ms (next.js: 15ms, application-code: 4ms)
+ GET /api/fonts 200 in 24ms (next.js: 20ms, application-code: 4ms)
+ GET /api/outputs 200 in 29ms (next.js: 25ms, application-code: 4ms)
+ GET / 200 in 116ms (next.js: 4ms, application-code: 112ms)
+ GET /api/templates 200 in 11ms (next.js: 6ms, application-code: 5ms)
+ GET /api/urls 200 in 16ms (next.js: 12ms, application-code: 3ms)
+ GET /api/backgrounds 200 in 21ms (next.js: 18ms, application-code: 3ms)
+ GET /api/fonts 200 in 11ms (next.js: 8ms, application-code: 3ms)
+ GET /api/outputs 200 in 10ms (next.js: 7ms, application-code: 4ms)
+ GET /api/templates 200 in 8ms (next.js: 4ms, application-code: 3ms)
+ GET /api/urls 200 in 12ms (next.js: 8ms, application-code: 3ms)
+ GET /api/backgrounds 200 in 18ms (next.js: 13ms, application-code: 5ms)
+ GET /api/fonts 200 in 23ms (next.js: 19ms, application-code: 3ms)
+ GET /api/outputs 200 in 5ms (next.js: 1.9ms, application-code: 3ms)
+ GET / 200 in 119ms (next.js: 3ms, application-code: 116ms)
+ GET /api/templates 200 in 11ms (next.js: 6ms, application-code: 5ms)
+ GET /api/urls 200 in 17ms (next.js: 12ms, application-code: 5ms)
+ GET /api/backgrounds 200 in 20ms (next.js: 17ms, application-code: 3ms)
+ GET /api/fonts 200 in 24ms (next.js: 22ms, application-code: 3ms)
+ GET /api/outputs 200 in 5ms (next.js: 2ms, application-code: 3ms)
+ GET /api/templates 200 in 7ms (next.js: 4ms, application-code: 3ms)
+ GET /api/urls 200 in 11ms (next.js: 8ms, application-code: 3ms)
+ GET /api/backgrounds 200 in 16ms (next.js: 12ms, application-code: 5ms)
+ GET /api/fonts 200 in 20ms (next.js: 17ms, application-code: 3ms)
+ GET /api/outputs 200 in 19ms (next.js: 17ms, application-code: 3ms)
+ GET /library 200 in 1567ms (next.js: 1499ms, application-code: 68ms)
+ GET /api/templates 200 in 7ms (next.js: 3ms, application-code: 4ms)
+ GET /api/urls 200 in 14ms (next.js: 9ms, application-code: 4ms)
+ GET /api/backgrounds 200 in 9ms (next.js: 5ms, application-code: 4ms)
+ GET /api/fonts 200 in 14ms (next.js: 10ms, application-code: 4ms)
+ GET /api/outputs 200 in 19ms (next.js: 15ms, application-code: 3ms)
+ GET /api/templates 200 in 18ms (next.js: 15ms, application-code: 4ms)
+ GET /api/urls 200 in 12ms (next.js: 9ms, application-code: 3ms)
+ GET /api/backgrounds 200 in 7ms (next.js: 3ms, application-code: 4ms)
+ GET /api/fonts 200 in 11ms (next.js: 8ms, application-code: 3ms)
+ GET /api/outputs 200 in 16ms (next.js: 12ms, application-code: 3ms)

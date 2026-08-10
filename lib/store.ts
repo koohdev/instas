@@ -4,7 +4,7 @@ import type { DesignTemplate } from "@/lib/templateStore";
 import type { SavedUrlItem } from "@/lib/urlLibraryStore";
 import type { BackgroundItem } from "@/app/api/backgrounds/route";
 import type { FontItem } from "@/app/api/fonts/route";
-import type { AspectRatio, BatchQueueItem } from "@/lib/types";
+import type { AspectRatio, BatchQueueItem, CategoryWatcher } from "@/lib/types";
 import { ASPECT_RATIO_LAYOUT_PRESETS } from "@/lib/types";
 
 // The settings state that the configurator modifies live
@@ -119,6 +119,10 @@ interface AppState {
 
   // Batch Queue
   batchQueue: BatchQueueItem[];
+  isQueueRunning: boolean;
+
+  // Automations
+  watchers: CategoryWatcher[];
 
   // Actions
   setActiveTab: (tab: string) => void;
@@ -142,10 +146,15 @@ interface AppState {
   resetGeneration: () => void;
 
   // Batch Queue Actions
-  enqueueBatch: (urls: string[], batchName: string) => void;
+  enqueueBatch: (urls: string[], batchName: string, templateId?: string) => void;
   runBatchQueue: () => Promise<void>;
   clearBatchQueue: () => void;
   removeBatchQueueItem: (id: string) => void;
+
+  // Automation Actions
+  addWatcher: (watcher: Omit<CategoryWatcher, "id">) => void;
+  removeWatcher: (id: string) => void;
+  checkWatchers: () => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -173,6 +182,8 @@ export const useAppStore = create<AppState>()(
       batchName: "",
       selectedSavedUrlIds: [],
       batchQueue: [] as BatchQueueItem[],
+      isQueueRunning: false,
+      watchers: [],
       
       settings: {
         coverTitle: "",
@@ -216,6 +227,7 @@ export const useAppStore = create<AppState>()(
       })),
 
       applyTemplate: (t) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, name, description, isDefault, ...templateSettings } = t;
         set({
           activeTemplateId: id,
@@ -389,6 +401,9 @@ export const useAppStore = create<AppState>()(
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ urls: updated }),
         });
+
+        // Check automations whenever new URLs are added
+        get().checkWatchers();
       },
 
       removeSavedUrls: async (ids) => {
@@ -403,58 +418,77 @@ export const useAppStore = create<AppState>()(
       },
 
       // Batch Queue Actions
-      enqueueBatch: (urls, batchName) => {
+      enqueueBatch: (urls, batchName, templateId) => {
         const item: BatchQueueItem = {
           id: crypto.randomUUID(),
           urls,
           batchName: batchName || `Batch ${new Date().toLocaleTimeString()}`,
           status: "pending",
           createdAt: new Date().toISOString(),
+          templateId,
         };
         set((state) => ({ batchQueue: [...state.batchQueue, item] }));
       },
 
       runBatchQueue: async () => {
-        const queue = get().batchQueue;
-        const pending = queue.filter((i) => i.status === "pending");
-        if (pending.length === 0) return;
+        // Prevent concurrent queue runners
+        if (get().isQueueRunning) return;
+        set({ isQueueRunning: true });
 
-        for (const item of pending) {
-          set((state) => ({
-            batchQueue: state.batchQueue.map((i) =>
-              i.id === item.id ? { ...i, status: "running" } : i
-            ) as BatchQueueItem[],
-          }));
-
-          try {
-            const res = await fetch("/api/generate", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                urls: item.urls,
-                batchName: item.batchName,
-                aspectRatio: get().aspectRatio,
-                ...get().settings,
-              }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Generation failed");
+        try {
+          while (true) {
+            const pendingItem = get().batchQueue.find((i) => i.status === "pending");
+            if (!pendingItem) break;
 
             set((state) => ({
               batchQueue: state.batchQueue.map((i) =>
-                i.id === item.id ? { ...i, status: "done", result: data } : i
+                i.id === pendingItem.id ? { ...i, status: "running" } : i
               ) as BatchQueueItem[],
             }));
 
-            await get().fetchData();
-          } catch (err: unknown) {
-            const msg = err instanceof Error ? err.message : "Unknown error";
-            set((state) => ({
-              batchQueue: state.batchQueue.map((i) =>
-                i.id === item.id ? { ...i, status: "error", errorMsg: msg } : i
-              ) as BatchQueueItem[],
-            }));
+            try {
+              // Get base settings or override with template settings if specified
+              let generationSettings = get().settings;
+              if (pendingItem.templateId) {
+                const template = get().templates.find(t => t.id === pendingItem.templateId);
+                if (template) {
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                  const { id, name, description, isDefault, ...templateSettings } = template;
+                  generationSettings = { ...generationSettings, ...templateSettings };
+                }
+              }
+
+              const res = await fetch("/api/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  urls: pendingItem.urls,
+                  batchName: pendingItem.batchName,
+                  aspectRatio: get().aspectRatio,
+                  ...generationSettings,
+                }),
+              });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || "Generation failed");
+
+              set((state) => ({
+                batchQueue: state.batchQueue.map((i) =>
+                  i.id === pendingItem.id ? { ...i, status: "done", result: data } : i
+                ) as BatchQueueItem[],
+              }));
+
+              await get().fetchData();
+            } catch (err: unknown) {
+              const msg = err instanceof Error ? err.message : "Unknown error";
+              set((state) => ({
+                batchQueue: state.batchQueue.map((i) =>
+                  i.id === pendingItem.id ? { ...i, status: "error", errorMsg: msg } : i
+                ) as BatchQueueItem[],
+              }));
+            }
           }
+        } finally {
+          set({ isQueueRunning: false });
         }
       },
 
@@ -462,6 +496,62 @@ export const useAppStore = create<AppState>()(
 
       removeBatchQueueItem: (id) =>
         set((state) => ({ batchQueue: state.batchQueue.filter((i) => i.id !== id) })),
+
+      // Automation Actions
+      addWatcher: (watcher) => {
+        const newWatcher = { ...watcher, id: crypto.randomUUID() };
+        set((state) => ({ watchers: [...state.watchers, newWatcher] }));
+        get().checkWatchers();
+      },
+
+      removeWatcher: (id) => {
+        set((state) => ({ watchers: state.watchers.filter((w) => w.id !== id) }));
+      },
+
+      checkWatchers: () => {
+        const { savedUrls, usedUrls, watchers, enqueueBatch, runBatchQueue } = get();
+
+        // Create a quick lookup for processed URLs by normalizing them
+        const processedSet = new Set((usedUrls || []).map(u => u.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/+$/, "")));
+
+        // Filter out URLs that are already generated
+        const pendingUrls = savedUrls.filter(u => {
+          const norm = u.url.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/+$/, "");
+          return !processedSet.has(norm);
+        });
+
+        let newBatchCreated = false;
+
+        watchers.forEach((watcher) => {
+          // Find pending URLs matching this watcher's category
+          // Ensure they are sorted from oldest to newest
+          let categoryUrls = pendingUrls
+            .filter(u => u.category === watcher.category)
+            .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+          while (categoryUrls.length >= watcher.threshold) {
+            // Take the oldest URLs up to the threshold
+            const chunk = categoryUrls.slice(0, watcher.threshold);
+            const urlsToProcess = chunk.map(u => u.url);
+
+            const batchName = `Auto: ${watcher.category} (${new Date().toLocaleTimeString()})`;
+            enqueueBatch(urlsToProcess, batchName, watcher.templateId);
+
+            // Mark them as tentatively processed in this run by adding to usedUrls
+            // so multiple watchers don't double-process, and to prevent infinite loops
+            set((state) => ({ usedUrls: [...(state.usedUrls || []), ...urlsToProcess] }));
+            newBatchCreated = true;
+
+            // Remove processed chunk from this loop's categoryUrls to continue processing bulk additions
+            categoryUrls = categoryUrls.slice(watcher.threshold);
+          }
+        });
+
+        if (newBatchCreated) {
+          // We don't await this so it runs in the background
+          runBatchQueue();
+        }
+      },
 
     }),
     {
@@ -475,6 +565,7 @@ export const useAppStore = create<AppState>()(
         urls: state.urls,
         batchName: state.batchName,
         selectedSavedUrlIds: state.selectedSavedUrlIds,
+        watchers: state.watchers,
       }),
     }
   )

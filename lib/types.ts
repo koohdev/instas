@@ -82,6 +82,13 @@ export const ASPECT_RATIO_LAYOUT_PRESETS: Record<
 // Batch Queue
 // ---------------------------------------------------------------------------
 
+export interface CategoryWatcher {
+  id: string;
+  category: string;
+  threshold: number;
+  templateId: string;
+}
+
 export interface BatchQueueItem {
   id: string;
   /** Grouped list of URLs forming one carousel (cover + N content slides). */
@@ -91,6 +98,7 @@ export interface BatchQueueItem {
   result?: GenerateResult;
   errorMsg?: string;
   createdAt: string;
+  templateId?: string;
 }
 
 // ---------------------------------------------------------------------------

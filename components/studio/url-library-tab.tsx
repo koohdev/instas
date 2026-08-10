@@ -18,6 +18,9 @@ import {
   Layers,
   Sparkles,
   Globe,
+  Zap,
+  Bot,
+  Settings2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -65,10 +68,17 @@ export function UrlLibraryTab() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [copiedUrlId, setCopiedUrlId] = useState<string | null>(null);
 
+  const [isAutomationsDialogOpen, setIsAutomationsDialogOpen] = useState(false);
+
   // New URL Dialog Inputs
   const [newUrlInput, setNewUrlInput] = useState("");
   const [newUrlTitle, setNewUrlTitle] = useState("");
   const [newUrlCategory, setNewUrlCategory] = useState("Tools");
+
+  // New Watcher Dialog Inputs
+  const [watcherCategory, setWatcherCategory] = useState("Design Tools");
+  const [watcherThreshold, setWatcherThreshold] = useState("5");
+  const [watcherTemplateId, setWatcherTemplateId] = useState("");
 
   // Normalized set of generated output URLs
   const processedUrlSet = useMemo(() => {
@@ -142,6 +152,23 @@ export function UrlLibraryTab() {
     setIsSyncing(false);
   };
 
+  const handleAddWatcher = () => {
+    playClick();
+    const thresholdNum = parseInt(watcherThreshold, 10);
+    if (isNaN(thresholdNum) || thresholdNum < 1 || !watcherTemplateId) return;
+
+    store.addWatcher({
+      category: watcherCategory,
+      threshold: thresholdNum,
+      templateId: watcherTemplateId,
+    });
+
+    // Reset form but keep dialog open to see the new watcher in list
+    setWatcherCategory("Design Tools");
+    setWatcherThreshold("5");
+    setWatcherTemplateId("");
+  };
+
   const handleAddUrlToLibrary = async () => {
     playClick();
     if (!newUrlInput.trim()) return;
@@ -208,6 +235,134 @@ export function UrlLibraryTab() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+          <Dialog open={isAutomationsDialogOpen} onOpenChange={setIsAutomationsDialogOpen}>
+            <DialogTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => playClick()}
+                  className="text-xs gap-1.5 font-semibold h-9 border-border hover:bg-muted shrink-0 cursor-pointer active:scale-[0.97]"
+                >
+                  <Zap className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="hidden sm:inline">Automations</span>
+                </Button>
+              }
+            />
+            <DialogContent className="bg-card border-border text-foreground p-0 overflow-hidden sm:max-w-xl rounded-2xl shadow-2xl">
+              <Frame variant="default" spacing="default">
+                <FramePanel className="gap-4 p-5">
+                  <DialogHeader>
+                    <DialogTitle className="text-base font-bold flex items-center gap-2">
+                      <Bot className="w-4 h-4 text-primary" /> Category Watchers
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-muted-foreground">
+                      Automatically generate batches when a category reaches a certain number of saved URLs.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="flex flex-col gap-4 py-2">
+                    {/* Active Watchers List */}
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[11px] uppercase font-bold text-muted-foreground block tracking-wider">
+                        Active Rules ({store.watchers.length})
+                      </label>
+                      {store.watchers.length === 0 ? (
+                        <div className="p-4 border border-dashed rounded-xl flex items-center justify-center text-center bg-muted/20">
+                          <p className="text-xs text-muted-foreground">No active rules.</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
+                          {store.watchers.map(w => (
+                            <div key={w.id} className="flex items-center justify-between p-2.5 rounded-lg border border-border/60 bg-muted/30">
+                              <div className="flex flex-col gap-0.5">
+                                <div className="flex items-center gap-1.5 text-xs font-semibold">
+                                  <span>IF</span>
+                                  <Badge variant="secondary" className="px-1.5 py-0 rounded text-[10px]">{w.category}</Badge>
+                                  <span>reaches {w.threshold} URLs</span>
+                                </div>
+                                <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                  <Settings2 className="w-3 h-3" />
+                                  Use template: {store.templates.find(t => t.id === w.templateId)?.name || 'Unknown Template'}
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon-xs"
+                                onClick={() => { playClick(); store.removeWatcher(w.id); }}
+                                className="size-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border-t border-border/40" />
+
+                    {/* New Watcher Form */}
+                    <div className="flex flex-col gap-3">
+                      <label className="text-[11px] uppercase font-bold text-muted-foreground block tracking-wider">
+                        Add New Rule
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="sm:col-span-1">
+                          <label className="text-[10px] text-muted-foreground mb-1 block">Category</label>
+                          <Select value={watcherCategory} onValueChange={(val) => { if (val) setWatcherCategory(val); }}>
+                            <SelectTrigger className="h-8 text-xs bg-muted/20 border-border">
+                              <SelectValue placeholder="Category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                {Array.from(new Set(["UI Components", "Design Tools", "Productivity", "Resources", "Tools", ...store.savedUrls.map((u) => u.category || "General")])).map(cat => (
+                                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="sm:col-span-1">
+                          <label className="text-[10px] text-muted-foreground mb-1 block">Threshold (URLs)</label>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={watcherThreshold}
+                            onChange={(e) => setWatcherThreshold(e.target.value)}
+                            className="bg-muted/20 border-border text-xs h-8"
+                          />
+                        </div>
+                        <div className="sm:col-span-1">
+                          <label className="text-[10px] text-muted-foreground mb-1 block">Template</label>
+                          <Select value={watcherTemplateId} onValueChange={(val) => { if (val) setWatcherTemplateId(val); }}>
+                            <SelectTrigger className="h-8 text-xs bg-muted/20 border-border">
+                              <SelectValue placeholder="Select..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                {store.templates.map(t => (
+                                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={handleAddWatcher}
+                        disabled={!watcherTemplateId || parseInt(watcherThreshold, 10) < 1}
+                        className="w-full bg-secondary hover:bg-secondary/80 text-secondary-foreground text-xs font-bold h-8 cursor-pointer mt-1"
+                      >
+                        <Plus className="w-3.5 h-3.5 mr-1" /> Add Rule
+                      </Button>
+                    </div>
+                  </div>
+                </FramePanel>
+              </Frame>
+            </DialogContent>
+          </Dialog>
+
           <Button
             variant="outline"
             size="sm"

@@ -39,7 +39,6 @@ export function BatchQueuePanel() {
   const store = useAppStore();
   const [urlsInput, setUrlsInput] = useState("");
   const [batchNameInput, setBatchNameInput] = useState("");
-  const [isRunning, setIsRunning] = useState(false);
 
   const hasPending = store.batchQueue.some((i) => i.status === "pending");
   const hasItems = store.batchQueue.length > 0;
@@ -56,12 +55,7 @@ export function BatchQueuePanel() {
   };
 
   const handleRunQueue = async () => {
-    setIsRunning(true);
-    try {
-      await store.runBatchQueue();
-    } finally {
-      setIsRunning(false);
-    }
+    await store.runBatchQueue();
   };
 
   return (
@@ -141,10 +135,10 @@ export function BatchQueuePanel() {
                 <Button
                   size="sm"
                   onClick={handleRunQueue}
-                  disabled={isRunning || !hasPending}
+                  disabled={store.isQueueRunning || !hasPending}
                   className="h-7 px-3 text-[11px] gap-1.5"
                 >
-                  {isRunning ? (
+                  {store.isQueueRunning ? (
                     <>
                       <Loader2 className="w-3 h-3 animate-spin" /> Processing...
                     </>
