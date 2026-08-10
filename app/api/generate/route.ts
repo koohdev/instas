@@ -8,13 +8,19 @@ import { getOutputDir, savePng } from "@/lib/output";
 import type { AspectRatio } from "@/lib/types";
 import { ASPECT_RATIO_DIMENSIONS } from "@/lib/types";
 import { loadUrlLibrary, saveUrlLibrary } from "@/lib/urlLibraryStore";
+import { cleanupTempFiles } from "@/lib/renderStore";
 
 export const maxDuration = 300; // 5 min max for route handler
 
 import { Browser } from "playwright";
 
 export async function POST(req: NextRequest) {
+  // Clean up old temporary files at start of generation
+  cleanupTempFiles();
+
   let browser: Browser | undefined;
+  let outputDir = "";
+  let currentChunkIndex = 0; // to keep scope in catch block
   try {
     const body = await req.json();
     const {
@@ -44,10 +50,20 @@ export async function POST(req: NextRequest) {
       titleTop,
       subtitleTop,
       urlPillTop,
+      chunkIndex = 0,
+      totalChunks = 1,
+      providedOutputDir = "",
+      startIndex = 0,
+      fullUrlList = [],
     } = body as {
       urls: string[];
       coverTitle: string;
       coverSubtitle: string;
+      chunkIndex?: number;
+      totalChunks?: number;
+      providedOutputDir?: string;
+      startIndex?: number;
+      fullUrlList?: string[];
       batchName?: string;
       aspectRatio?: AspectRatio;
       topLeftText?: string;
@@ -73,26 +89,34 @@ export async function POST(req: NextRequest) {
       urlPillTop?: number;
     };
 
+    currentChunkIndex = chunkIndex;
+
     if (!urls || urls.length === 0) {
       return NextResponse.json({ error: "No URLs provided" }, { status: 400 });
     }
 
-    const host = req.headers.get("host") || "localhost:3000";
+    const host = req.headers.get("host") || `localhost:${process.env.PORT || 3000}`;
     const protocol = req.headers.get("x-forwarded-proto") || "http";
     const baseUrl = `${protocol}://${host}`;
-    const outputDir = getOutputDir(batchName || coverTitle);
 
-    // Save manifest.json in outputDir for tracking used/processed URLs
-    try {
-      const manifestFile = path.join(outputDir, "manifest.json");
-      const manifestData = {
-        batchName: batchName || coverTitle,
-        createdAt: new Date().toISOString(),
-        urls: urls.map((u) => u.trim()).filter(Boolean),
-      };
-      fs.writeFileSync(manifestFile, JSON.stringify(manifestData, null, 2), "utf-8");
-    } catch (e) {
-      console.error("Failed to write output manifest:", e);
+    // Support outputDir provided from previous chunk, else create a new one
+    outputDir = providedOutputDir || getOutputDir(batchName || coverTitle);
+
+    // Save manifest.json in outputDir for tracking used/processed URLs ONLY on first chunk
+    if (chunkIndex === 0) {
+      try {
+        const manifestFile = path.join(outputDir, "manifest.json");
+        const manifestData = {
+          batchName: batchName || coverTitle,
+          createdAt: new Date().toISOString(),
+          urls: fullUrlList && fullUrlList.length > 0
+            ? fullUrlList.map((u) => u.trim()).filter(Boolean)
+            : urls.map((u) => u.trim()).filter(Boolean),
+        };
+        fs.writeFileSync(manifestFile, JSON.stringify(manifestData, null, 2), "utf-8");
+      } catch (e) {
+        console.error("Failed to write output manifest:", e);
+      }
     }
 
     const sharedSettings = {
@@ -132,21 +156,23 @@ export async function POST(req: NextRequest) {
 
     const results: { filename: string; url?: string; error?: string }[] = [];
 
-    // 1. Cover slide
-    try {
-      const coverParams: CompositeParams = {
-        type: "cover",
-        coverTitle,
-        coverSubtitle,
-        ...sharedSettings,
-      };
-      const coverBuf = await compositeSlide(coverParams, baseUrl, browser);
-      const coverFile = "01_cover.png";
-      savePng(coverBuf, outputDir, coverFile);
-      results.push({ filename: coverFile });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.stack || err.message : String(err);
-      results.push({ filename: "01_cover_error.png", error: `Cover slide failed: ${msg}` });
+    // 1. Cover slide (ONLY on chunkIndex 0)
+    if (chunkIndex === 0) {
+      try {
+        const coverParams: CompositeParams = {
+          type: "cover",
+          coverTitle,
+          coverSubtitle,
+          ...sharedSettings,
+        };
+        const coverBuf = await compositeSlide(coverParams, baseUrl, browser);
+        const coverFile = "01_cover.png";
+        savePng(coverBuf, outputDir, coverFile);
+        results.push({ filename: coverFile });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.stack || err.message : String(err);
+        results.push({ filename: "01_cover_error.png", error: `Cover slide failed: ${msg}` });
+      }
     }
 
     // 2. Content slides — scrape + composite concurrently
@@ -154,7 +180,7 @@ export async function POST(req: NextRequest) {
       rawUrl = rawUrl.trim();
       if (!rawUrl) return null;
 
-      const slideNumber = i + 1; // Content 1 = 01, Content 2 = 02
+      const slideNumber = startIndex + i + 1;
 
       let scraped;
       try {
@@ -201,8 +227,9 @@ export async function POST(req: NextRequest) {
     }
 
     // LinkedIn PDF: render all slides into a single PDF using Playwright
+    // ONLY triggered on the very last chunk!
     let pdfPath: string | undefined;
-    if (aspectRatio === "linkedin-pdf") {
+    if (aspectRatio === "linkedin-pdf" && chunkIndex === totalChunks - 1) {
       try {
         const dims = ASPECT_RATIO_DIMENSIONS["linkedin-pdf"];
         const pdfContext = await browser.newContext({ viewport: { width: dims.width, height: dims.height } });
@@ -210,13 +237,16 @@ export async function POST(req: NextRequest) {
         const pdfFilename = `${(batchName || coverTitle || "carousel").replace(/[^a-z0-9_-]/gi, "_")}.pdf`;
         pdfPath = path.join(outputDir, pdfFilename);
 
-        // Build a multi-page HTML document containing all slides
-        const slideHtml = results
-          .filter((r) => !r.error)
-          .map((r) => {
-            const imgPath = path.join(outputDir, r.filename);
-            if (!fs.existsSync(imgPath)) return "";
-            const base64 = fs.readFileSync(imgPath).toString("base64");
+        // Build a multi-page HTML document containing all slides in the folder (including previous chunks)
+        const allPngs = fs
+          .readdirSync(/*turbopackIgnore: true*/ outputDir)
+          .filter((file) => file.endsWith(".png") && !file.includes("_error"))
+          .sort(); // Sorting relies on 01_cover, 02_content, etc naming
+
+        const slideHtml = allPngs
+          .map((filename) => {
+            const imgPath = path.join(outputDir, filename);
+            const base64 = fs.readFileSync(/*turbopackIgnore: true*/ imgPath).toString("base64");
             return `<div style="width:${dims.width}px;height:${dims.height}px;page-break-after:always;overflow:hidden;"><img src="data:image/png;base64,${base64}" style="width:100%;height:100%;object-fit:cover;"/></div>`;
           })
           .join("");
@@ -267,6 +297,18 @@ export async function POST(req: NextRequest) {
     if (browser) {
       await browser.close().catch(() => {});
     }
+    // Clean up orphaned folder if we crashed.
+    // If currentChunkIndex === 0, it means it failed on the very first batch,
+    // so we delete the folder entirely to avoid "half-empty" folders.
+    // If currentChunkIndex > 0, we leave the folder since it contains successful previous chunks.
+    if (currentChunkIndex === 0 && outputDir && fs.existsSync(/*turbopackIgnore: true*/ outputDir)) {
+      try {
+        fs.rmSync(/*turbopackIgnore: true*/ outputDir, { recursive: true, force: true });
+      } catch (cleanupErr) {
+        // ignore cleanup error
+      }
+    }
+
     const message = err instanceof Error ? err.stack || err.message : String(err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
