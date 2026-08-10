@@ -20,7 +20,7 @@ export default function RenderLayout({
           rel="stylesheet"
         />
         <style>{`
-          * { margin: 0; padding: 0; box-sizing: border-box; transition: none !important; animation: none !important; }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
           body { background: transparent; overflow: hidden; }
           
           /* Hide Next.js dev overlay indicator completely in screenshots */

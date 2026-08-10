@@ -37,10 +37,39 @@ function StatusBadge({ status }: { status: BatchQueueItem["status"] }) {
 
 export function BatchQueuePanel() {
   const store = useAppStore();
+  const [urlsInput, setUrlsInput] = useState("");
+  const [batchNameInput, setBatchNameInput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
 
   const hasPending = store.batchQueue.some((i) => i.status === "pending");
   const hasItems = store.batchQueue.length > 0;
+
+  const handleAddBatch = () => {
+    const urls = urlsInput
+      .split("\n")
+      .map((u) => u.trim())
+      .filter(Boolean);
+    if (urls.length === 0) return;
+
+    // Validate URLs
+    const invalidUrls: string[] = [];
+    for (const url of urls) {
+      try {
+        new URL(url);
+      } catch (e) {
+        invalidUrls.push(url);
+      }
+    }
+
+    if (invalidUrls.length > 0) {
+      window.alert(`The following URLs are invalid:\n${invalidUrls.join("\n")}\n\nPlease correct them before adding to the queue.`);
+      return;
+    }
+
+    store.enqueueBatch(urls, batchNameInput || "");
+    setUrlsInput("");
+    setBatchNameInput("");
+  };
 
   const handleRunQueue = async () => {
     setIsRunning(true);
@@ -70,12 +99,57 @@ export function BatchQueuePanel() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={store.clearBatchQueue}
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to clear the entire batch queue?")) {
+                    store.clearBatchQueue();
+                  }
+                }}
                 className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive gap-1"
+                aria-label="Clear All Batch Queue"
               >
                 <Trash2 className="w-3 h-3" /> Clear All
               </Button>
             )}
+          </div>
+
+          {/* Add New Batch Form */}
+          <div className="flex flex-col gap-3 p-3 bg-muted/30 rounded-xl border border-border/50">
+            <Label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Add New Batch</Label>
+
+            <div className="grid gap-1.5">
+              <Label className="text-[11px] font-semibold text-foreground">Batch Name (Optional)</Label>
+              <Input
+                placeholder="e.g. Design-Tools-Sept-2025"
+                value={batchNameInput}
+                onChange={(e) => setBatchNameInput(e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label className="text-[11px] font-semibold text-foreground">
+                Source URLs <span className="text-muted-foreground font-normal">(one per line)</span>
+              </Label>
+              <Textarea
+                rows={4}
+                placeholder={"https://example.com/article-1\nhttps://example.com/article-2\nhttps://example.com/article-3"}
+                value={urlsInput}
+                onChange={(e) => setUrlsInput(e.target.value)}
+                className="font-mono text-xs bg-muted/20 border-border resize-none"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                {urlsInput.split("\n").filter((u) => u.trim()).length} URL(s) → 1 carousel (cover + content slides)
+              </p>
+            </div>
+
+            <Button
+              size="sm"
+              onClick={handleAddBatch}
+              disabled={!urlsInput.trim()}
+              className="h-8 text-xs gap-1.5 w-full"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add to Queue
+            </Button>
           </div>
 
           {/* Queue List */}
@@ -85,22 +159,37 @@ export function BatchQueuePanel() {
                 <Label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
                   Queue ({store.batchQueue.length} items)
                 </Label>
-                <Button
-                  size="sm"
-                  onClick={handleRunQueue}
-                  disabled={isRunning || !hasPending}
-                  className="h-7 px-3 text-[11px] gap-1.5"
-                >
-                  {isRunning ? (
-                    <>
-                      <Loader2 className="w-3 h-3 animate-spin" /> Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-3 h-3 fill-current" /> Run All
-                    </>
+                <div className="flex items-center gap-2">
+                  {store.isBatchQueueRunning && !store.isBatchQueueCancelled && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => store.cancelBatchQueue()}
+                      className="h-7 px-3 text-[11px] gap-1.5"
+                    >
+                      <X className="w-3 h-3" /> Cancel
+                    </Button>
                   )}
-                </Button>
+                  {store.isBatchQueueRunning && store.isBatchQueueCancelled && (
+                    <span className="text-[10px] text-muted-foreground italic">Cancelling...</span>
+                  )}
+                  <Button
+                    size="sm"
+                    onClick={handleRunQueue}
+                    disabled={store.isBatchQueueRunning || !hasPending}
+                    className="h-7 px-3 text-[11px] gap-1.5"
+                  >
+                    {store.isBatchQueueRunning ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" /> Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3 h-3 fill-current" /> Run All
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
 
               <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
@@ -136,19 +225,7 @@ export function BatchQueuePanel() {
                               {item.urls.length} URL{item.urls.length !== 1 ? "s" : ""} → {item.urls.length + 1} slides
                             </span>
                             {item.status === "error" && item.errorMsg && (
-                              <div className="mt-2 w-full max-h-32 overflow-y-auto rounded-md bg-destructive/10 border border-destructive/20 p-2 relative group">
-                                <p className="text-[10px] text-destructive font-mono whitespace-pre-wrap break-all leading-tight pr-6">
-                                  {item.errorMsg}
-                                </p>
-                                <button
-                                  type="button"
-                                  onClick={() => navigator.clipboard.writeText(item.errorMsg!)}
-                                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-background border border-border rounded-sm p-1 text-muted-foreground hover:text-foreground shadow-sm"
-                                  title="Copy Error Stack Trace"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                                </button>
-                              </div>
+                              <p className="text-[10px] text-destructive font-medium truncate">{item.errorMsg}</p>
                             )}
                             {item.status === "done" && item.result && (
                               <p className="text-[10px] text-emerald-400 font-medium">
@@ -163,6 +240,7 @@ export function BatchQueuePanel() {
                             type="button"
                             onClick={() => store.removeBatchQueueItem(item.id)}
                             className="shrink-0 w-5 h-5 rounded-md flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                            aria-label="Remove batch queue item"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -178,7 +256,7 @@ export function BatchQueuePanel() {
           {!hasItems && (
             <div className="py-8 flex flex-col items-center justify-center gap-2 text-center border border-dashed border-border/50 rounded-xl">
               <List className="w-8 h-8 text-muted-foreground/30" />
-              <p className="text-xs text-muted-foreground">No items in queue. Add URLs from the URL Library.</p>
+              <p className="text-xs text-muted-foreground">No items in queue. Add a batch above.</p>
             </div>
           )}
         </div>

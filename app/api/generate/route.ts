@@ -7,14 +7,11 @@ import { compositeSlide, CompositeParams } from "@/lib/compositor";
 import { getOutputDir, savePng } from "@/lib/output";
 import type { AspectRatio } from "@/lib/types";
 import { ASPECT_RATIO_DIMENSIONS } from "@/lib/types";
-import { loadUrlLibrary, saveUrlLibrary } from "@/lib/urlLibraryStore";
 
 export const maxDuration = 300; // 5 min max for route handler
 
-import { Browser } from "playwright";
-
 export async function POST(req: NextRequest) {
-  let browser: Browser | undefined;
+  let browser;
   try {
     const body = await req.json();
     const {
@@ -77,9 +74,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No URLs provided" }, { status: 400 });
     }
 
-    const host = req.headers.get("host") || "localhost:3000";
-    const protocol = req.headers.get("x-forwarded-proto") || "http";
-    const baseUrl = `${protocol}://${host}`;
+    const baseUrl = `http://localhost:${process.env.PORT || 3000}`;
     const outputDir = getOutputDir(batchName || coverTitle);
 
     // Save manifest.json in outputDir for tracking used/processed URLs
@@ -123,13 +118,6 @@ export async function POST(req: NextRequest) {
     // Shared browser instance for 3-5x faster batch processing
     browser = await chromium.launch({ headless: true });
 
-    req.signal.addEventListener("abort", () => {
-      if (browser) {
-        browser.close().catch(console.error);
-        browser = undefined;
-      }
-    });
-
     const results: { filename: string; url?: string; error?: string }[] = [];
 
     // 1. Cover slide
@@ -145,27 +133,28 @@ export async function POST(req: NextRequest) {
       savePng(coverBuf, outputDir, coverFile);
       results.push({ filename: coverFile });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.stack || err.message : String(err);
+      const msg = err instanceof Error ? err.message : String(err);
       results.push({ filename: "01_cover_error.png", error: `Cover slide failed: ${msg}` });
     }
 
-    // 2. Content slides — scrape + composite concurrently
-    const contentSlidePromises = urls.map(async (rawUrl, i) => {
-      rawUrl = rawUrl.trim();
-      if (!rawUrl) return null;
+    // 2. Content slides — scrape + composite sequentially
+    for (let i = 0; i < urls.length; i++) {
+      const rawUrl = urls[i].trim();
+      if (!rawUrl) continue;
 
       const slideNumber = i + 1; // Content 1 = 01, Content 2 = 02
 
       let scraped;
       try {
-        scraped = await scrapeUrl(rawUrl, browser!);
+        scraped = await scrapeUrl(rawUrl, browser);
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.stack || err.message : String(err);
-        return {
+        const msg = err instanceof Error ? err.message : String(err);
+        results.push({
           filename: `${String(slideNumber + 1).padStart(2, "0")}_error.png`,
           url: rawUrl,
           error: `Scrape error: ${msg}`,
-        };
+        });
+        continue;
       }
 
       try {
@@ -179,33 +168,30 @@ export async function POST(req: NextRequest) {
           ...sharedSettings,
         };
 
-        const contentBuf = await compositeSlide(contentParams, baseUrl, browser!);
+        const contentBuf = await compositeSlide(contentParams, baseUrl, browser);
         const filename = `${String(slideNumber + 1).padStart(2, "0")}_content.png`;
         savePng(contentBuf, outputDir, filename);
-        return { filename, url: scraped.url, error: scraped.error };
+        results.push({ filename, url: scraped.url, error: scraped.error });
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.stack || err.message : String(err);
-        return {
+        const msg = err instanceof Error ? err.message : String(err);
+        results.push({
           filename: `${String(slideNumber + 1).padStart(2, "0")}_error.png`,
           url: scraped.url,
           error: `Composite error: ${msg}`,
-        };
-      }
-    });
-
-    const contentSlideResults = await Promise.all(contentSlidePromises);
-    for (const res of contentSlideResults) {
-      if (res) {
-        results.push(res);
+        });
       }
     }
+
+    await browser.close();
+    browser = undefined;
 
     // LinkedIn PDF: render all slides into a single PDF using Playwright
     let pdfPath: string | undefined;
     if (aspectRatio === "linkedin-pdf") {
       try {
+        const pdfBrowser = await chromium.launch({ headless: true });
         const dims = ASPECT_RATIO_DIMENSIONS["linkedin-pdf"];
-        const pdfContext = await browser.newContext({ viewport: { width: dims.width, height: dims.height } });
+        const pdfContext = await pdfBrowser.newContext({ viewport: { width: dims.width, height: dims.height } });
         const pdfPage = await pdfContext.newPage();
         const pdfFilename = `${(batchName || coverTitle || "carousel").replace(/[^a-z0-9_-]/gi, "_")}.pdf`;
         pdfPath = path.join(outputDir, pdfFilename);
@@ -229,37 +215,10 @@ export async function POST(req: NextRequest) {
         });
         fs.writeFileSync(pdfPath, pdfBuf);
         await pdfContext.close();
+        await pdfBrowser.close();
       } catch (pdfErr: unknown) {
         console.error("PDF generation error:", pdfErr);
       }
-    }
-
-    await browser.close();
-    browser = undefined;
-
-    // Update status in url_library.json
-    try {
-      const successfulUrls = results.filter((r) => !r.error && r.url).map((r) => r.url!);
-      if (successfulUrls.length > 0) {
-        const urlLibrary = await loadUrlLibrary();
-        let updated = false;
-
-        for (const rawUrl of successfulUrls) {
-          const matchUrl = rawUrl.trim().toLowerCase();
-          for (const item of urlLibrary) {
-            if (item.url.trim().toLowerCase() === matchUrl) {
-              item.status = "processed";
-              updated = true;
-            }
-          }
-        }
-
-        if (updated) {
-          await saveUrlLibrary(urlLibrary);
-        }
-      }
-    } catch (updateErr) {
-      console.error("Failed to update url library status:", updateErr);
     }
 
     return NextResponse.json({ outputDir, slides: results, pdfPath });
@@ -267,7 +226,7 @@ export async function POST(req: NextRequest) {
     if (browser) {
       await browser.close().catch(() => {});
     }
-    const message = err instanceof Error ? err.stack || err.message : String(err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

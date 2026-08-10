@@ -31,7 +31,7 @@ export default async function RenderPage({ searchParams }: PageProps) {
   let params: CompositeParams | null = null;
 
   if (id) {
-    params = await getRenderData(id) as CompositeParams | null;
+    params = getRenderData(id) as CompositeParams | null;
   } else if (data) {
     try {
       params = JSON.parse(decodeURIComponent(data));
@@ -69,7 +69,7 @@ export default async function RenderPage({ searchParams }: PageProps) {
         <meta charSet="UTF-8" />
         {/* System font preload */}
         <style>{`
-          * { box-sizing: border-box; margin: 0; padding: 0; transition: none !important; animation: none !important; }
+          * { box-sizing: border-box; margin: 0; padding: 0; }
           body { background: #0d0d0d; overflow: hidden; }
           ${fontFaceCSS}
         `}</style>
