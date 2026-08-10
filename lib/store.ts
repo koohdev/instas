@@ -140,6 +140,7 @@ interface AppState {
   updateTemplate: (id: string, updates: Partial<DesignTemplate>) => Promise<void>;
   addSavedUrls: (newItems: SavedUrlItem[]) => Promise<void>;
   removeSavedUrls: (ids: string[]) => Promise<void>;
+  updateSavedUrl: (id: string, updates: Partial<SavedUrlItem>) => Promise<void>;
 
   // Background Generation Engine
   handleGenerate: (urlList: string[]) => Promise<void>;
@@ -147,7 +148,10 @@ interface AppState {
 
   // Batch Queue Actions
   enqueueBatch: (urls: string[], batchName: string, templateId?: string) => void;
+  isBatchQueueRunning: boolean;
+  isBatchQueueCancelled: boolean;
   runBatchQueue: () => Promise<void>;
+  cancelBatchQueue: () => void;
   clearBatchQueue: () => void;
   removeBatchQueueItem: (id: string) => void;
 
@@ -185,6 +189,9 @@ export const useAppStore = create<AppState>()(
       isQueueRunning: false,
       watchers: [],
       
+      isBatchQueueRunning: false,
+      isBatchQueueCancelled: false,
+
       settings: {
         coverTitle: "",
         coverSubtitle: "",
@@ -417,6 +424,16 @@ export const useAppStore = create<AppState>()(
         });
       },
 
+      updateSavedUrl: async (id, updates) => {
+        const updated = get().savedUrls.map((item) => (item.id === id ? { ...item, ...updates } : item));
+        set({ savedUrls: updated });
+        await fetch("/api/urls", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ urls: updated }),
+        });
+      },
+
       // Batch Queue Actions
       enqueueBatch: (urls, batchName, templateId) => {
         const item: BatchQueueItem = {
@@ -436,9 +453,15 @@ export const useAppStore = create<AppState>()(
         set({ isQueueRunning: true });
 
         try {
+          set({ isBatchQueueRunning: true, isBatchQueueCancelled: false });
+
           while (true) {
             const pendingItem = get().batchQueue.find((i) => i.status === "pending");
             if (!pendingItem) break;
+
+            if (get().isBatchQueueCancelled) {
+              break;
+            }
 
             set((state) => ({
               batchQueue: state.batchQueue.map((i) =>
@@ -488,9 +511,11 @@ export const useAppStore = create<AppState>()(
             }
           }
         } finally {
-          set({ isQueueRunning: false });
+          set({ isQueueRunning: false, isBatchQueueRunning: false, isBatchQueueCancelled: false });
         }
       },
+
+      cancelBatchQueue: () => set({ isBatchQueueCancelled: true }),
 
       clearBatchQueue: () => set({ batchQueue: [] }),
 

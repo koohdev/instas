@@ -61,46 +61,7 @@ export async function scrapeUrl(
     }
 
     await page.waitForLoadState("load", { timeout: 8000 }).catch(() => {});
-
-    // Auto-hide or dismiss cookie banners and overlays
-    await page.evaluate(() => {
-      // 1. Attempt to click "Accept" or "Agree" buttons
-      const btnSelectors = [
-        "button", "a", "[role='button']", "input[type='button']", "input[type='submit']"
-      ];
-      const acceptKeywords = ["accept", "agree", "allow", "got it", "consent", "continue"];
-
-      const buttons = document.querySelectorAll(btnSelectors.join(","));
-      for (const btn of Array.from(buttons)) {
-        const text = (btn.textContent || "").toLowerCase().trim();
-        if (acceptKeywords.some(keyword => text.includes(keyword)) && btn instanceof HTMLElement) {
-          try { btn.click(); } catch (e) {}
-        }
-      }
-
-      // 2. Hide high z-index elements containing GDPR/cookie/privacy keywords
-      const overlayKeywords = ["cookie", "gdpr", "privacy", "consent", "banner"];
-      const elements = document.querySelectorAll("div, section, aside, form, dialog");
-
-      for (const el of Array.from(elements)) {
-        const style = window.getComputedStyle(el);
-        const zIndex = parseInt(style.zIndex, 10);
-        const text = (el.textContent || "").toLowerCase();
-
-        // Hide if fixed/absolute and has high z-index and contains keywords
-        if (
-          (style.position === "fixed" || style.position === "absolute" || style.position === "sticky") &&
-          !isNaN(zIndex) && zIndex > 10 &&
-          overlayKeywords.some(keyword => text.includes(keyword))
-        ) {
-          if (el instanceof HTMLElement) {
-            el.style.display = "none";
-          }
-        }
-      }
-    }).catch(() => {});
-
-    await page.waitForTimeout(1500); // Give it a bit more time to settle
+    await page.waitForTimeout(1200);
 
     const rawTitle = await page
       .evaluate(() => document.title || "")
