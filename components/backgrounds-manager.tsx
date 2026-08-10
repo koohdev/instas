@@ -392,8 +392,8 @@ export function BackgroundsManager({ activeBackground, onSelectBackground }: Bac
                         </span>
                       </div>
 
-                      {/* Card Action Buttons (Screenshot 1 Spec) */}
-                      <div className="flex items-center h-[42px] gap-2 w-full">
+                      {/* Card Action Buttons (Emil Kowalski Design Polish) */}
+                      <div className="flex items-center h-10 gap-2 w-full">
                         <button
                           type="button"
                           onClick={() => {
@@ -406,7 +406,7 @@ export function BackgroundsManager({ activeBackground, onSelectBackground }: Bac
                               store.setActiveTab("studio");
                             }
                           }}
-                          className={`flex-1 h-full rounded-xl border border-transparent font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs active:scale-[0.98] ${
+                          className={`flex-1 h-full rounded-xl border border-transparent font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-transform duration-150 ease-out active:scale-[0.97] shadow-xs ${
                             isSelected
                               ? "bg-foreground text-background hover:bg-foreground/90"
                               : "bg-foreground text-background hover:bg-foreground/90"
@@ -433,7 +433,7 @@ export function BackgroundsManager({ activeBackground, onSelectBackground }: Bac
                             setCopiedFile(bg.filename);
                             setTimeout(() => setCopiedFile(null), 2000);
                           }}
-                          className="h-full aspect-square rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-foreground dark:text-white flex items-center justify-center hover:bg-muted dark:hover:bg-[#18181B] hover:border-border dark:hover:border-[#3F3F46] cursor-pointer transition-all active:scale-[0.98] shrink-0"
+                          className="h-full w-10 rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-foreground dark:text-white flex items-center justify-center hover:bg-muted dark:hover:bg-[#18181B] hover:border-border dark:hover:border-[#3F3F46] cursor-pointer transition-transform duration-150 ease-out active:scale-[0.97] shrink-0"
                           title="Copy Filename"
                         >
                           {copiedFile === bg.filename ? (
@@ -446,7 +446,7 @@ export function BackgroundsManager({ activeBackground, onSelectBackground }: Bac
                         <button
                           type="button"
                           onClick={() => handleDelete(bg.filename)}
-                          className="h-full aspect-square rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-muted-foreground dark:text-[#A1A1AA] hover:text-red-500 flex items-center justify-center hover:bg-muted dark:hover:bg-[#18181B] hover:border-red-500/40 cursor-pointer transition-all active:scale-[0.98] shrink-0"
+                          className="h-full w-10 rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-muted-foreground dark:text-[#A1A1AA] hover:text-red-500 flex items-center justify-center hover:bg-muted dark:hover:bg-[#18181B] hover:border-red-500/40 cursor-pointer transition-transform duration-150 ease-out active:scale-[0.97] shrink-0"
                           title="Delete Asset"
                         >
                           <Trash2 className="w-4 h-4" />
