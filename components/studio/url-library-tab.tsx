@@ -44,7 +44,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { sanitizeUrls } from "@/utils/url-sanitizer";
-import { Edit2, Save, X } from "lucide-react";
 
 function normalizeUrl(url: string): string {
   return url
@@ -70,14 +69,14 @@ export function UrlLibraryTab() {
   const [editTitle, setEditTitle] = useState("");
   const [editCategory, setEditCategory] = useState("");
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
   // New URL Dialog Inputs
   const [newUrlInput, setNewUrlInput] = useState("");
   const [newUrlTitle, setNewUrlTitle] = useState("");
   const [newUrlCategory, setNewUrlCategory] = useState("Tools");
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
 
   // Normalized set of generated output URLs
   const processedUrlSet = useMemo(() => {
@@ -112,12 +111,6 @@ export function UrlLibraryTab() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const totalPages = Math.ceil(filteredUrls.length / itemsPerPage);
-
-  // Enforce page bounds dynamically to prevent cascading render warnings
-  const safeCurrentPage = Math.min(Math.max(currentPage, 1), Math.max(totalPages, 1));
-  const paginatedUrls = filteredUrls.slice((safeCurrentPage - 1) * itemsPerPage, safeCurrentPage * itemsPerPage);
-
   const allFilteredSelected =
     filteredUrls.length > 0 &&
     filteredUrls.every((item) => store.selectedSavedUrlIds.includes(item.id));
@@ -147,7 +140,6 @@ export function UrlLibraryTab() {
   const handleRemoveSelected = async () => {
     playClick();
     if (store.selectedSavedUrlIds.length === 0) return;
-    if (!window.confirm(`Are you sure you want to permanently remove ${store.selectedSavedUrlIds.length} selected URLs?`)) return;
     await store.removeSavedUrls(store.selectedSavedUrlIds);
   };
 
@@ -446,7 +438,7 @@ export function UrlLibraryTab() {
             </div>
 
             {/* Category Filter Pills - h-8 height */}
-            <div className="flex items-center gap-1 flex-nowrap overflow-x-auto scrollbar-hide pb-1 -mb-1">
+            <div className="flex items-center gap-1 flex-wrap">
               {Array.from(new Set(["All", ...store.savedUrls.map((u) => u.category || "General")])).map((cat) => (
                 <button
                   key={cat}
@@ -454,7 +446,7 @@ export function UrlLibraryTab() {
                     playClick();
                     setSelectedCategoryFilter(cat);
                   }}
-                  className={`h-8 flex-none text-[11px] font-semibold px-3 rounded-full transition-all flex items-center justify-center cursor-pointer ${
+                  className={`h-8 text-[11px] font-semibold px-3 rounded-full transition-all flex items-center justify-center cursor-pointer ${
                     selectedCategoryFilter === cat
                       ? "bg-primary text-primary-foreground shadow-xs"
                       : "text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/80 border border-border/40"
@@ -478,18 +470,10 @@ export function UrlLibraryTab() {
           </p>
         </div>
       ) : (
-<<<<<<< HEAD
-        <div className="flex flex-col gap-4 w-full">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-            {paginatedUrls.map((item) => {
-              const isChecked = store.selectedSavedUrlIds.includes(item.id);
-              const isProcessed = isUrlProcessed(item.url);
-=======
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
           {filteredUrls.map((item) => {
             const isChecked = store.selectedSavedUrlIds.includes(item.id);
             const isProcessed = isUrlProcessed(item);
->>>>>>> origin/master
 
             return (
               <Frame
@@ -514,7 +498,7 @@ export function UrlLibraryTab() {
                   <div className="flex flex-col gap-2">
                     {/* Header Row: Title & Checkbox */}
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0 w-full">
+                      <div className="flex items-center gap-2 min-w-0">
                         {(() => {
                           try {
                             const domain = new URL(item.url).hostname;
@@ -537,16 +521,7 @@ export function UrlLibraryTab() {
                           }
                         })()}
                         <Globe className="w-4 h-4 text-primary/70 shrink-0 hidden" />
-                        {editingUrlId === item.id ? (
-                          <Input
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            className="h-6 text-sm font-bold bg-background w-full px-2"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        ) : (
-                          <span className="font-bold text-sm text-foreground truncate">{item.title}</span>
-                        )}
+                        <span className="font-bold text-sm text-foreground truncate">{item.title}</span>
                       </div>
 
                       <div
@@ -581,71 +556,11 @@ export function UrlLibraryTab() {
 
                   {/* Card Footer & Actions */}
                   <div className="flex items-center justify-between pt-2 border-t border-border/40 gap-2">
-                    {editingUrlId === item.id ? (
-                      <Input
-                        value={editCategory}
-                        onChange={(e) => setEditCategory(e.target.value)}
-                        className="h-6 text-[10px] w-24 bg-background px-2"
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="Category"
-                      />
-                    ) : (
-                      <Badge variant="secondary" className="bg-muted text-muted-foreground text-[10px] font-medium">
-                        {item.category || "General"}
-                      </Badge>
-                    )}
+                    <Badge variant="secondary" className="bg-muted text-muted-foreground text-[10px] font-medium">
+                      {item.category || "General"}
+                    </Badge>
 
                     <div className="flex items-center gap-1">
-                      {editingUrlId === item.id ? (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon-xs"
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              playClick();
-                              await store.updateSavedUrl(item.id, { title: editTitle, category: editCategory });
-                              setEditingUrlId(null);
-                            }}
-                            className="size-6 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer"
-                            title="Save Changes"
-                            aria-label="Save Changes"
-                          >
-                            <Save className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-xs"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              playClick();
-                              setEditingUrlId(null);
-                            }}
-                            className="size-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
-                            title="Cancel Editing"
-                            aria-label="Cancel Editing"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </Button>
-                        </>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playClick();
-                            setEditingUrlId(item.id);
-                            setEditTitle(item.title);
-                            setEditCategory(item.category || "General");
-                          }}
-                          className="size-6 text-muted-foreground hover:text-foreground cursor-pointer active:scale-[0.97]"
-                          title="Edit URL"
-                          aria-label="Edit URL"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                      )}
                       <Button
                         variant="ghost"
                         size="icon-xs"
@@ -658,7 +573,6 @@ export function UrlLibraryTab() {
                         }}
                         className="size-6 text-muted-foreground hover:text-foreground cursor-pointer active:scale-[0.97]"
                         title="Copy URL"
-                        aria-label="Copy URL"
                       >
                         {copiedUrlId === item.id ? (
                           <Check className="w-3 h-3 text-emerald-400" />
@@ -677,7 +591,6 @@ export function UrlLibraryTab() {
                         }}
                         className="h-6 px-1.5 text-[10px] text-muted-foreground hover:text-foreground cursor-pointer active:scale-[0.97]"
                         title="Open URL in New Tab"
-                        aria-label="Open URL in New Tab"
                       >
                         <ExternalLink className="w-3 h-3" />
                       </Button>
@@ -706,13 +619,10 @@ export function UrlLibraryTab() {
                         onClick={(e) => {
                           e.stopPropagation();
                           playClick();
-                          if (window.confirm("Are you sure you want to permanently remove this URL?")) {
-                            store.removeSavedUrls([item.id]);
-                          }
+                          store.removeSavedUrls([item.id]);
                         }}
                         className="size-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer active:scale-[0.97]"
                         title="Remove from Library"
-                        aria-label="Remove from Library"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
@@ -722,39 +632,6 @@ export function UrlLibraryTab() {
               </Frame>
             );
           })}
-          </div>
-
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  playClick();
-                  setCurrentPage((prev) => Math.max(prev - 1, 1));
-                }}
-                disabled={safeCurrentPage === 1}
-                className="h-8 px-3 text-xs"
-              >
-                Previous
-              </Button>
-              <span className="text-xs text-muted-foreground font-medium">
-                Page {safeCurrentPage} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  playClick();
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-                }}
-                disabled={safeCurrentPage === totalPages}
-                className="h-8 px-3 text-xs"
-              >
-                Next
-              </Button>
-            </div>
-          )}
         </div>
       )}
     </div>

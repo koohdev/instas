@@ -42,36 +42,6 @@ export function BatchQueuePanel() {
   const hasPending = store.batchQueue.some((i) => i.status === "pending");
   const hasItems = store.batchQueue.length > 0;
 
-<<<<<<< HEAD
-  const handleAddBatch = () => {
-    const urls = urlsInput
-      .split("\n")
-      .map((u) => u.trim())
-      .filter(Boolean);
-    if (urls.length === 0) return;
-
-    // Validate URLs
-    const invalidUrls: string[] = [];
-    for (const url of urls) {
-      try {
-        new URL(url);
-      } catch (e) {
-        invalidUrls.push(url);
-      }
-    }
-
-    if (invalidUrls.length > 0) {
-      window.alert(`The following URLs are invalid:\n${invalidUrls.join("\n")}\n\nPlease correct them before adding to the queue.`);
-      return;
-    }
-
-    store.enqueueBatch(urls, batchNameInput || "");
-    setUrlsInput("");
-    setBatchNameInput("");
-  };
-
-=======
->>>>>>> origin/master
   const handleRunQueue = async () => {
     setIsRunning(true);
     try {
