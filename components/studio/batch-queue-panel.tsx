@@ -136,7 +136,19 @@ export function BatchQueuePanel() {
                               {item.urls.length} URL{item.urls.length !== 1 ? "s" : ""} → {item.urls.length + 1} slides
                             </span>
                             {item.status === "error" && item.errorMsg && (
-                              <p className="text-[10px] text-destructive font-medium truncate">{item.errorMsg}</p>
+                              <div className="mt-2 w-full max-h-32 overflow-y-auto rounded-md bg-destructive/10 border border-destructive/20 p-2 relative group">
+                                <p className="text-[10px] text-destructive font-mono whitespace-pre-wrap break-all leading-tight pr-6">
+                                  {item.errorMsg}
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => navigator.clipboard.writeText(item.errorMsg!)}
+                                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-background border border-border rounded-sm p-1 text-muted-foreground hover:text-foreground shadow-sm"
+                                  title="Copy Error Stack Trace"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                                </button>
+                              </div>
                             )}
                             {item.status === "done" && item.result && (
                               <p className="text-[10px] text-emerald-400 font-medium">
