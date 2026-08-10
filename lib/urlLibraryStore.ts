@@ -1,4 +1,5 @@
 import fs from "fs";
+import { promises as fsPromises } from "fs";
 import path from "path";
 
 export interface SavedUrlItem {
@@ -8,6 +9,7 @@ export interface SavedUrlItem {
   category: string;
   tags: string[];
   createdAt: string;
+  status?: "pending" | "processed";
 }
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -56,28 +58,56 @@ const DEFAULT_SAVED_URLS: SavedUrlItem[] = [
   },
 ];
 
-function ensureDataDir(): void {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-}
-
-export function loadUrlLibrary(): SavedUrlItem[] {
-  ensureDataDir();
-  if (!fs.existsSync(URL_LIBRARY_FILE)) {
-    saveUrlLibrary(DEFAULT_SAVED_URLS);
-    return DEFAULT_SAVED_URLS;
-  }
+async function ensureDataDir(): Promise<void> {
   try {
-    const raw = fs.readFileSync(URL_LIBRARY_FILE, "utf-8");
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_SAVED_URLS;
+    await fsPromises.access(DATA_DIR);
   } catch {
-    return DEFAULT_SAVED_URLS;
+    await fsPromises.mkdir(DATA_DIR, { recursive: true });
   }
 }
 
-export function saveUrlLibrary(items: SavedUrlItem[]): void {
-  ensureDataDir();
-  fs.writeFileSync(URL_LIBRARY_FILE, JSON.stringify(items, null, 2), "utf-8");
+let fileMutex = Promise.resolve();
+
+async function withLock<T>(task: () => Promise<T>): Promise<T> {
+  let release: () => void;
+  const nextLock = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+
+  const previousLock = fileMutex;
+  fileMutex = previousLock.then(() => nextLock);
+
+  try {
+    await previousLock;
+    return await task();
+  } finally {
+    release!();
+  }
+}
+
+export async function loadUrlLibrary(): Promise<SavedUrlItem[]> {
+  return withLock(async () => {
+    await ensureDataDir();
+    try {
+      await fsPromises.access(URL_LIBRARY_FILE);
+    } catch {
+      await fsPromises.writeFile(URL_LIBRARY_FILE, JSON.stringify(DEFAULT_SAVED_URLS, null, 2), "utf-8");
+      return DEFAULT_SAVED_URLS;
+    }
+
+    try {
+      const raw = await fsPromises.readFile(URL_LIBRARY_FILE, "utf-8");
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_SAVED_URLS;
+    } catch {
+      return DEFAULT_SAVED_URLS;
+    }
+  });
+}
+
+export async function saveUrlLibrary(items: SavedUrlItem[]): Promise<void> {
+  return withLock(async () => {
+    await ensureDataDir();
+    await fsPromises.writeFile(URL_LIBRARY_FILE, JSON.stringify(items, null, 2), "utf-8");
+  });
 }

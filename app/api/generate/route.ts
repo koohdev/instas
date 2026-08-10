@@ -7,15 +7,18 @@ import { compositeSlide, CompositeParams } from "@/lib/compositor";
 import { getOutputDir, savePng } from "@/lib/output";
 import type { AspectRatio } from "@/lib/types";
 import { ASPECT_RATIO_DIMENSIONS } from "@/lib/types";
+import { loadUrlLibrary, saveUrlLibrary } from "@/lib/urlLibraryStore";
 import { cleanupTempFiles } from "@/lib/renderStore";
 
 export const maxDuration = 300; // 5 min max for route handler
+
+import { Browser } from "playwright";
 
 export async function POST(req: NextRequest) {
   // Clean up old temporary files at start of generation
   cleanupTempFiles();
 
-  let browser;
+  let browser: Browser | undefined;
   let outputDir = "";
   let currentChunkIndex = 0; // to keep scope in catch block
   try {
@@ -92,7 +95,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No URLs provided" }, { status: 400 });
     }
 
-    const baseUrl = `http://localhost:${process.env.PORT || 3000}`;
+    const host = req.headers.get("host") || `localhost:${process.env.PORT || 3000}`;
+    const protocol = req.headers.get("x-forwarded-proto") || "http";
+    const baseUrl = `${protocol}://${host}`;
 
     // Support outputDir provided from previous chunk, else create a new one
     outputDir = providedOutputDir || getOutputDir(batchName || coverTitle);
@@ -142,6 +147,13 @@ export async function POST(req: NextRequest) {
     // Shared browser instance for 3-5x faster batch processing
     browser = await chromium.launch({ headless: true });
 
+    req.signal.addEventListener("abort", () => {
+      if (browser) {
+        browser.close().catch(console.error);
+        browser = undefined;
+      }
+    });
+
     const results: { filename: string; url?: string; error?: string }[] = [];
 
     // 1. Cover slide (ONLY on chunkIndex 0)
@@ -158,29 +170,28 @@ export async function POST(req: NextRequest) {
         savePng(coverBuf, outputDir, coverFile);
         results.push({ filename: coverFile });
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
+        const msg = err instanceof Error ? err.stack || err.message : String(err);
         results.push({ filename: "01_cover_error.png", error: `Cover slide failed: ${msg}` });
       }
     }
 
-    // 2. Content slides — scrape + composite sequentially
-    for (let i = 0; i < urls.length; i++) {
-      const rawUrl = urls[i].trim();
-      if (!rawUrl) continue;
+    // 2. Content slides — scrape + composite concurrently
+    const contentSlidePromises = urls.map(async (rawUrl, i) => {
+      rawUrl = rawUrl.trim();
+      if (!rawUrl) return null;
 
       const slideNumber = startIndex + i + 1;
 
       let scraped;
       try {
-        scraped = await scrapeUrl(rawUrl, browser);
+        scraped = await scrapeUrl(rawUrl, browser!);
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        results.push({
+        const msg = err instanceof Error ? err.stack || err.message : String(err);
+        return {
           filename: `${String(slideNumber + 1).padStart(2, "0")}_error.png`,
           url: rawUrl,
           error: `Scrape error: ${msg}`,
-        });
-        continue;
+        };
       }
 
       try {
@@ -194,45 +205,48 @@ export async function POST(req: NextRequest) {
           ...sharedSettings,
         };
 
-        const contentBuf = await compositeSlide(contentParams, baseUrl, browser);
+        const contentBuf = await compositeSlide(contentParams, baseUrl, browser!);
         const filename = `${String(slideNumber + 1).padStart(2, "0")}_content.png`;
         savePng(contentBuf, outputDir, filename);
-        results.push({ filename, url: scraped.url, error: scraped.error });
+        return { filename, url: scraped.url, error: scraped.error };
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        results.push({
+        const msg = err instanceof Error ? err.stack || err.message : String(err);
+        return {
           filename: `${String(slideNumber + 1).padStart(2, "0")}_error.png`,
           url: scraped.url,
           error: `Composite error: ${msg}`,
-        });
+        };
+      }
+    });
+
+    const contentSlideResults = await Promise.all(contentSlidePromises);
+    for (const res of contentSlideResults) {
+      if (res) {
+        results.push(res);
       }
     }
-
-    await browser.close();
-    browser = undefined;
 
     // LinkedIn PDF: render all slides into a single PDF using Playwright
     // ONLY triggered on the very last chunk!
     let pdfPath: string | undefined;
     if (aspectRatio === "linkedin-pdf" && chunkIndex === totalChunks - 1) {
       try {
-        const pdfBrowser = await chromium.launch({ headless: true });
         const dims = ASPECT_RATIO_DIMENSIONS["linkedin-pdf"];
-        const pdfContext = await pdfBrowser.newContext({ viewport: { width: dims.width, height: dims.height } });
+        const pdfContext = await browser.newContext({ viewport: { width: dims.width, height: dims.height } });
         const pdfPage = await pdfContext.newPage();
         const pdfFilename = `${(batchName || coverTitle || "carousel").replace(/[^a-z0-9_-]/gi, "_")}.pdf`;
         pdfPath = path.join(outputDir, pdfFilename);
 
         // Build a multi-page HTML document containing all slides in the folder (including previous chunks)
         const allPngs = fs
-          .readdirSync(outputDir)
+          .readdirSync(/*turbopackIgnore: true*/ outputDir)
           .filter((file) => file.endsWith(".png") && !file.includes("_error"))
           .sort(); // Sorting relies on 01_cover, 02_content, etc naming
 
         const slideHtml = allPngs
           .map((filename) => {
             const imgPath = path.join(outputDir, filename);
-            const base64 = fs.readFileSync(imgPath).toString("base64");
+            const base64 = fs.readFileSync(/*turbopackIgnore: true*/ imgPath).toString("base64");
             return `<div style="width:${dims.width}px;height:${dims.height}px;page-break-after:always;overflow:hidden;"><img src="data:image/png;base64,${base64}" style="width:100%;height:100%;object-fit:cover;"/></div>`;
           })
           .join("");
@@ -245,10 +259,37 @@ export async function POST(req: NextRequest) {
         });
         fs.writeFileSync(pdfPath, pdfBuf);
         await pdfContext.close();
-        await pdfBrowser.close();
       } catch (pdfErr: unknown) {
         console.error("PDF generation error:", pdfErr);
       }
+    }
+
+    await browser.close();
+    browser = undefined;
+
+    // Update status in url_library.json
+    try {
+      const successfulUrls = results.filter((r) => !r.error && r.url).map((r) => r.url!);
+      if (successfulUrls.length > 0) {
+        const urlLibrary = await loadUrlLibrary();
+        let updated = false;
+
+        for (const rawUrl of successfulUrls) {
+          const matchUrl = rawUrl.trim().toLowerCase();
+          for (const item of urlLibrary) {
+            if (item.url.trim().toLowerCase() === matchUrl) {
+              item.status = "processed";
+              updated = true;
+            }
+          }
+        }
+
+        if (updated) {
+          await saveUrlLibrary(urlLibrary);
+        }
+      }
+    } catch (updateErr) {
+      console.error("Failed to update url library status:", updateErr);
     }
 
     return NextResponse.json({ outputDir, slides: results, pdfPath });
@@ -256,20 +297,19 @@ export async function POST(req: NextRequest) {
     if (browser) {
       await browser.close().catch(() => {});
     }
-
     // Clean up orphaned folder if we crashed.
     // If currentChunkIndex === 0, it means it failed on the very first batch,
     // so we delete the folder entirely to avoid "half-empty" folders.
     // If currentChunkIndex > 0, we leave the folder since it contains successful previous chunks.
-    if (currentChunkIndex === 0 && outputDir && fs.existsSync(outputDir)) {
+    if (currentChunkIndex === 0 && outputDir && fs.existsSync(/*turbopackIgnore: true*/ outputDir)) {
       try {
-        fs.rmSync(outputDir, { recursive: true, force: true });
+        fs.rmSync(/*turbopackIgnore: true*/ outputDir, { recursive: true, force: true });
       } catch (cleanupErr) {
         // ignore cleanup error
       }
     }
 
-    const message = err instanceof Error ? err.message : String(err);
+    const message = err instanceof Error ? err.stack || err.message : String(err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
