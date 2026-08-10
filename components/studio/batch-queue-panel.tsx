@@ -50,6 +50,22 @@ export function BatchQueuePanel() {
       .map((u) => u.trim())
       .filter(Boolean);
     if (urls.length === 0) return;
+
+    // Validate URLs
+    const invalidUrls: string[] = [];
+    for (const url of urls) {
+      try {
+        new URL(url);
+      } catch (e) {
+        invalidUrls.push(url);
+      }
+    }
+
+    if (invalidUrls.length > 0) {
+      window.alert(`The following URLs are invalid:\n${invalidUrls.join("\n")}\n\nPlease correct them before adding to the queue.`);
+      return;
+    }
+
     store.enqueueBatch(urls, batchNameInput || "");
     setUrlsInput("");
     setBatchNameInput("");
@@ -83,8 +99,13 @@ export function BatchQueuePanel() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={store.clearBatchQueue}
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to clear the entire batch queue?")) {
+                    store.clearBatchQueue();
+                  }
+                }}
                 className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive gap-1"
+                aria-label="Clear All Batch Queue"
               >
                 <Trash2 className="w-3 h-3" /> Clear All
               </Button>
@@ -138,22 +159,37 @@ export function BatchQueuePanel() {
                 <Label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
                   Queue ({store.batchQueue.length} items)
                 </Label>
-                <Button
-                  size="sm"
-                  onClick={handleRunQueue}
-                  disabled={isRunning || !hasPending}
-                  className="h-7 px-3 text-[11px] gap-1.5"
-                >
-                  {isRunning ? (
-                    <>
-                      <Loader2 className="w-3 h-3 animate-spin" /> Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-3 h-3 fill-current" /> Run All
-                    </>
+                <div className="flex items-center gap-2">
+                  {store.isBatchQueueRunning && !store.isBatchQueueCancelled && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => store.cancelBatchQueue()}
+                      className="h-7 px-3 text-[11px] gap-1.5"
+                    >
+                      <X className="w-3 h-3" /> Cancel
+                    </Button>
                   )}
-                </Button>
+                  {store.isBatchQueueRunning && store.isBatchQueueCancelled && (
+                    <span className="text-[10px] text-muted-foreground italic">Cancelling...</span>
+                  )}
+                  <Button
+                    size="sm"
+                    onClick={handleRunQueue}
+                    disabled={store.isBatchQueueRunning || !hasPending}
+                    className="h-7 px-3 text-[11px] gap-1.5"
+                  >
+                    {store.isBatchQueueRunning ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" /> Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3 h-3 fill-current" /> Run All
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
 
               <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
@@ -204,6 +240,7 @@ export function BatchQueuePanel() {
                             type="button"
                             onClick={() => store.removeBatchQueueItem(item.id)}
                             className="shrink-0 w-5 h-5 rounded-md flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                            aria-label="Remove batch queue item"
                           >
                             <X className="w-3 h-3" />
                           </button>
