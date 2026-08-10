@@ -77,7 +77,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No URLs provided" }, { status: 400 });
     }
 
-    const baseUrl = `http://localhost:${process.env.PORT || 3000}`;
+    const host = req.headers.get("host") || "localhost:3000";
+    const protocol = req.headers.get("x-forwarded-proto") || "http";
+    const baseUrl = `${protocol}://${host}`;
     const outputDir = getOutputDir(batchName || coverTitle);
 
     // Save manifest.json in outputDir for tracking used/processed URLs
@@ -121,6 +123,13 @@ export async function POST(req: NextRequest) {
     // Shared browser instance for 3-5x faster batch processing
     browser = await chromium.launch({ headless: true });
 
+    req.signal.addEventListener("abort", () => {
+      if (browser) {
+        browser.close().catch(console.error);
+        browser = undefined;
+      }
+    });
+
     const results: { filename: string; url?: string; error?: string }[] = [];
 
     // 1. Cover slide
@@ -136,7 +145,7 @@ export async function POST(req: NextRequest) {
       savePng(coverBuf, outputDir, coverFile);
       results.push({ filename: coverFile });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
+      const msg = err instanceof Error ? err.stack || err.message : String(err);
       results.push({ filename: "01_cover_error.png", error: `Cover slide failed: ${msg}` });
     }
 
@@ -149,9 +158,9 @@ export async function POST(req: NextRequest) {
 
       let scraped;
       try {
-        scraped = await scrapeUrl(rawUrl, browser);
+        scraped = await scrapeUrl(rawUrl, browser!);
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
+        const msg = err instanceof Error ? err.stack || err.message : String(err);
         return {
           filename: `${String(slideNumber + 1).padStart(2, "0")}_error.png`,
           url: rawUrl,
@@ -170,12 +179,12 @@ export async function POST(req: NextRequest) {
           ...sharedSettings,
         };
 
-        const contentBuf = await compositeSlide(contentParams, baseUrl, browser);
+        const contentBuf = await compositeSlide(contentParams, baseUrl, browser!);
         const filename = `${String(slideNumber + 1).padStart(2, "0")}_content.png`;
         savePng(contentBuf, outputDir, filename);
         return { filename, url: scraped.url, error: scraped.error };
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
+        const msg = err instanceof Error ? err.stack || err.message : String(err);
         return {
           filename: `${String(slideNumber + 1).padStart(2, "0")}_error.png`,
           url: scraped.url,
@@ -258,7 +267,7 @@ export async function POST(req: NextRequest) {
     if (browser) {
       await browser.close().catch(() => {});
     }
-    const message = err instanceof Error ? err.message : String(err);
+    const message = err instanceof Error ? err.stack || err.message : String(err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
