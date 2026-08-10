@@ -116,16 +116,16 @@ export async function GET(req: NextRequest) {
     if (folderName === "all") {
       archiveTitle = "all_instascrape_carousel_outputs";
       for (const root of roots) {
-        if (!fs.existsSync(root)) continue;
-        const entries = fs.readdirSync(root, { withFileTypes: true });
+        if (!fs.existsSync(/*turbopackIgnore: true*/ root)) continue;
+        const entries = fs.readdirSync(/*turbopackIgnore: true*/ root, { withFileTypes: true });
         for (const entry of entries) {
           if (!entry.isDirectory()) continue;
           const subFolderPath = path.join(root, entry.name);
-          const fStat = fs.readdirSync(subFolderPath);
+          const fStat = fs.readdirSync(/*turbopackIgnore: true*/ subFolderPath);
           const pngs = fStat.filter((f) => f.toLowerCase().endsWith(".png"));
           for (const pngFile of pngs) {
             const fullFilePath = path.join(subFolderPath, pngFile);
-            const content = fs.readFileSync(fullFilePath);
+            const content = fs.readFileSync(/*turbopackIgnore: true*/ fullFilePath);
             filesToZip.push({
               filename: `${entry.name}/${pngFile}`,
               buffer: content,
@@ -137,7 +137,7 @@ export async function GET(req: NextRequest) {
       let targetFolderPath: string | null = null;
       for (const root of roots) {
         const checkPath = path.join(root, folderName);
-        if (fs.existsSync(checkPath) && fs.statSync(checkPath).isDirectory()) {
+        if (fs.existsSync(/*turbopackIgnore: true*/ checkPath) && fs.statSync(/*turbopackIgnore: true*/ checkPath).isDirectory()) {
           targetFolderPath = checkPath;
           break;
         }
@@ -147,7 +147,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: `Folder '${folderName}' not found` }, { status: 404 });
       }
 
-      const dirFiles = fs.readdirSync(targetFolderPath);
+      const dirFiles = fs.readdirSync(/*turbopackIgnore: true*/ targetFolderPath);
       const pngFiles = dirFiles
         .filter((f) => f.toLowerCase().endsWith(".png"))
         .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
@@ -157,8 +157,8 @@ export async function GET(req: NextRequest) {
       }
 
       for (const pngFile of pngFiles) {
-        const fullFilePath = path.join(targetFolderPath, pngFile);
-        const content = fs.readFileSync(fullFilePath);
+        const fullFilePath = path.join(/*turbopackIgnore: true*/ targetFolderPath, pngFile);
+        const content = fs.readFileSync(/*turbopackIgnore: true*/ fullFilePath);
         filesToZip.push({
           filename: pngFile,
           buffer: content,

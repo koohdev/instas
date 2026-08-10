@@ -482,7 +482,7 @@ export function UrlLibraryTab() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
             {paginatedUrls.map((item) => {
               const isChecked = store.selectedSavedUrlIds.includes(item.id);
-              const isProcessed = isUrlProcessed(item.url);
+              const isProcessed = isUrlProcessed(item);
 
             return (
               <Frame
