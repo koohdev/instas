@@ -63,7 +63,6 @@ export function UrlLibraryTab() {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState<"all" | "done" | "pending">("all");
   const [isUrlDialogOpen, setIsUrlDialogOpen] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [copiedUrlId, setCopiedUrlId] = useState<string | null>(null);
 
   // Edit state
@@ -85,14 +84,14 @@ export function UrlLibraryTab() {
     return new Set((store.usedUrls || []).map((u) => normalizeUrl(u)));
   }, [store.usedUrls]);
 
-  const isUrlProcessed = (url: string) => {
-    return processedUrlSet.has(normalizeUrl(url));
+  const isUrlProcessed = (item: { url: string; status?: "pending" | "processed" }) => {
+    return item.status === "processed" || processedUrlSet.has(normalizeUrl(item.url));
   };
 
   // Status counters
   const totalCount = store.savedUrls.length;
   const doneCount = useMemo(() => {
-    return store.savedUrls.filter((item) => isUrlProcessed(item.url)).length;
+    return store.savedUrls.filter((item) => isUrlProcessed(item)).length;
   }, [store.savedUrls, processedUrlSet]);
   const pendingCount = totalCount - doneCount;
 
@@ -104,7 +103,7 @@ export function UrlLibraryTab() {
     const matchesCategory =
       selectedCategoryFilter === "All" || item.category === selectedCategoryFilter;
 
-    const processed = isUrlProcessed(item.url);
+    const processed = isUrlProcessed(item);
     const matchesStatus =
       statusFilter === "all" ||
       (statusFilter === "done" && processed) ||
@@ -152,11 +151,15 @@ export function UrlLibraryTab() {
     await store.removeSavedUrls(store.selectedSavedUrlIds);
   };
 
-  const handleSyncStore = async () => {
+  const handleAddToBatchQueue = () => {
     playClick();
-    setIsSyncing(true);
-    await store.fetchData();
-    setIsSyncing(false);
+    const selected = store.savedUrls
+      .filter((item) => store.selectedSavedUrlIds.includes(item.id))
+      .map((item) => item.url);
+    if (selected.length > 0) {
+      store.enqueueBatch(selected, `Batch ${new Date().toLocaleTimeString()}`);
+      store.setSelectedSavedUrlIds([]);
+    }
   };
 
   const handleAddUrlToLibrary = async () => {
@@ -225,19 +228,15 @@ export function UrlLibraryTab() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSyncStore}
-            disabled={isSyncing}
-            className="text-xs gap-1.5 font-semibold h-9 border-border hover:bg-muted shrink-0 cursor-pointer active:scale-[0.97]"
-          >
-            <RotateCcw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Sync Library</span>
-          </Button>
-
           {store.selectedSavedUrlIds.length > 0 && (
             <>
+              <Button
+                onClick={handleAddToBatchQueue}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1.5 font-bold h-9 px-3.5 shrink-0 cursor-pointer active:scale-[0.97] shadow-sm"
+              >
+                <Layers className="w-3.5 h-3.5" /> Queue ({store.selectedSavedUrlIds.length})
+              </Button>
+
               <Button
                 onClick={handleRunSelectedUrls}
                 className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs gap-1.5 font-bold h-9 px-3.5 shrink-0 cursor-pointer active:scale-[0.97] shadow-sm"
@@ -479,11 +478,18 @@ export function UrlLibraryTab() {
           </p>
         </div>
       ) : (
+<<<<<<< HEAD
         <div className="flex flex-col gap-4 w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
             {paginatedUrls.map((item) => {
               const isChecked = store.selectedSavedUrlIds.includes(item.id);
               const isProcessed = isUrlProcessed(item.url);
+=======
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+          {filteredUrls.map((item) => {
+            const isChecked = store.selectedSavedUrlIds.includes(item.id);
+            const isProcessed = isUrlProcessed(item);
+>>>>>>> origin/master
 
             return (
               <Frame
