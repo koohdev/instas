@@ -450,11 +450,9 @@ export const useAppStore = create<AppState>()(
       runBatchQueue: async () => {
         // Prevent concurrent queue runners
         if (get().isQueueRunning) return;
-        set({ isQueueRunning: true });
+        set({ isQueueRunning: true, isBatchQueueRunning: true, isBatchQueueCancelled: false });
 
         try {
-          set({ isBatchQueueRunning: true, isBatchQueueCancelled: false });
-
           while (true) {
             const pendingItem = get().batchQueue.find((i) => i.status === "pending");
             if (!pendingItem) break;
