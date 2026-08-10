@@ -254,92 +254,91 @@ export function OutputsManager() {
         </div>
       </div>
 
-      {/* Control Bar - Fully responsive on mobile/tablet */}
+      {/* Control Bar - Fully responsive on mobile/tablet (Screenshot & Design Spec) */}
       <Frame variant="default" spacing="default" className="w-full">
         <FramePanel className="p-3">
-          <div className="flex flex-col md:flex-row md:items-center gap-3 w-full">
-            {/* Search */}
-            <div className="relative w-full md:w-56 shrink-0">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search outputs..."
-                className="pl-8 h-8 text-xs bg-background/80 w-full"
-              />
-            </div>
+          <div className="flex flex-col md:flex-row md:items-center gap-3 w-full justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
+              {/* Search */}
+              <div className="relative w-full sm:w-56 shrink-0">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#A1A1AA]" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search outputs..."
+                  className="pl-8 text-xs h-9 bg-[#09090B] border-[#27272A] rounded-xl text-white w-full"
+                />
+              </div>
 
-            {/* Divider - hidden on mobile */}
-            <div className="hidden md:block w-px h-6 bg-border/50 shrink-0" />
+              {/* Status Filter Pills - Responsive Grid with rounded-[6px] active buttons */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:flex items-center min-h-[36px] md:h-9 p-0.5 bg-[#09090B] border border-[#27272A] rounded-xl gap-0.5 shrink-0 w-full md:w-auto">
+                <button
+                  onClick={() => {
+                    playClick();
+                    setStatusFilter("all");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3 rounded-[6px] transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
+                    statusFilter === "all"
+                      ? "bg-[#18181B] text-white font-extrabold shadow-xs"
+                      : "text-[#A1A1AA] hover:text-white"
+                  }`}
+                >
+                  All ({totalBatches})
+                </button>
 
-            {/* Status Filter Pills - copied directly from url-library-tab */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0 w-full md:w-auto">
-              <button
-                onClick={() => {
-                  playClick();
-                  setStatusFilter("all");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
-                  statusFilter === "all"
-                    ? "bg-background text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                All ({totalBatches})
-              </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setStatusFilter("not_posted");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3 rounded-[6px] transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
+                    statusFilter === "not_posted"
+                      ? "bg-[#18181B] text-white font-extrabold shadow-xs"
+                      : "text-[#A1A1AA] hover:text-white"
+                  }`}
+                >
+                  <Circle className="w-3 h-3 opacity-60" /> Not Posted ({notPostedCount})
+                </button>
 
-              <button
-                onClick={() => {
-                  playClick();
-                  setStatusFilter("not_posted");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
-                  statusFilter === "not_posted"
-                    ? "bg-background text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Circle className="w-3 h-3 opacity-60" /> Not Posted ({notPostedCount})
-              </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setStatusFilter("posted");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3 rounded-[6px] transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
+                    statusFilter === "posted"
+                      ? "bg-emerald-600 text-white font-extrabold shadow-xs"
+                      : "text-[#A1A1AA] hover:text-white"
+                  }`}
+                >
+                  <CheckCircle2 className="w-3 h-3" /> Posted ({postedCount})
+                </button>
 
-              <button
-                onClick={() => {
-                  playClick();
-                  setStatusFilter("posted");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
-                  statusFilter === "posted"
-                    ? "bg-emerald-600 text-white shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <CheckCircle2 className="w-3 h-3" /> Posted ({postedCount})
-              </button>
-
-              <button
-                onClick={() => {
-                  playClick();
-                  setStatusFilter("scheduled");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
-                  statusFilter === "scheduled"
-                    ? "bg-blue-600 text-white shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Clock className="w-3 h-3" /> Scheduled ({scheduledCount})
-              </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setStatusFilter("scheduled");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3 rounded-[6px] transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
+                    statusFilter === "scheduled"
+                      ? "bg-blue-600 text-white font-extrabold shadow-xs"
+                      : "text-[#A1A1AA] hover:text-white"
+                  }`}
+                >
+                  <Clock className="w-3 h-3" /> Scheduled ({scheduledCount})
+                </button>
+              </div>
             </div>
 
             {/* Controls sub-row on mobile: Sort Dropdown & View Mode Switcher */}
             <div className="flex items-center justify-between gap-2 w-full md:w-auto md:ml-auto shrink-0">
               {/* Sort Dropdown */}
               <DropdownMenu>
-                <DropdownMenuTrigger className="flex-1 md:flex-initial inline-flex items-center justify-center rounded-md border border-border/80 bg-background hover:bg-muted text-foreground h-8 px-3 text-xs font-medium gap-1.5 cursor-pointer">
-                  <ArrowUpDown className="w-3.5 h-3.5" />
+                <DropdownMenuTrigger className="flex-1 md:flex-initial inline-flex items-center justify-center rounded-xl border border-[#27272A] bg-[#09090B] hover:bg-[#18181B] text-white h-9 px-3.5 text-xs font-semibold gap-1.5 cursor-pointer">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-[#A1A1AA]" />
                   <span className="capitalize">{sortBy}</span>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-36">
+                <DropdownMenuContent align="end" className="w-36 bg-[#18181B] border-[#27272A] text-white">
                   <DropdownMenuItem onClick={() => setSortBy("newest")}>Newest First</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setSortBy("oldest")}>Oldest First</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setSortBy("slides")}>Most Slides</DropdownMenuItem>
@@ -348,16 +347,49 @@ export function OutputsManager() {
               </DropdownMenu>
 
               {/* View Mode Icons */}
-              <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
-                <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("grid"); }} title="Grid View" className="h-full w-8">
+              <div className="flex items-center h-9 p-0.5 bg-[#09090B] border border-[#27272A] rounded-xl gap-0.5 shrink-0">
+                <button
+                  onClick={() => {
+                    playClick();
+                    setViewMode("grid");
+                  }}
+                  title="Grid View"
+                  className={`h-full w-8 rounded-[6px] flex items-center justify-center transition-all cursor-pointer ${
+                    viewMode === "grid"
+                      ? "bg-[#18181B] text-white"
+                      : "text-[#A1A1AA] hover:text-white"
+                  }`}
+                >
                   <LayoutGrid className="w-3.5 h-3.5" />
-                </Button>
-                <Button variant={viewMode === "table" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("table"); }} title="Table View" className="h-full w-8">
+                </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setViewMode("table");
+                  }}
+                  title="Table View"
+                  className={`h-full w-8 rounded-[6px] flex items-center justify-center transition-all cursor-pointer ${
+                    viewMode === "table"
+                      ? "bg-[#18181B] text-white"
+                      : "text-[#A1A1AA] hover:text-white"
+                  }`}
+                >
                   <List className="w-3.5 h-3.5" />
-                </Button>
-                <Button variant={viewMode === "calendar" ? "secondary" : "ghost"} size="icon-xs" onClick={() => { playClick(); setViewMode("calendar"); }} title="Calendar View" className="h-full w-8">
+                </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setViewMode("calendar");
+                  }}
+                  title="Calendar View"
+                  className={`h-full w-8 rounded-[6px] flex items-center justify-center transition-all cursor-pointer ${
+                    viewMode === "calendar"
+                      ? "bg-[#18181B] text-white"
+                      : "text-[#A1A1AA] hover:text-white"
+                  }`}
+                >
                   <CalendarIcon className="w-3.5 h-3.5" />
-                </Button>
+                </button>
               </div>
             </div>
           </div>

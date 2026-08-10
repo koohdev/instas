@@ -13,7 +13,7 @@ import { Loader2, SlidersHorizontal, Network } from "lucide-react";
 import { StudioConfigurator } from "@/components/studio/studio-configurator";
 import { CanvasFlowEditor } from "@/components/studio/canvas-flow-editor";
 import { GenerationPreview } from "@/components/studio/generation-preview";
-import { GenerationStatus } from "@/components/studio/generation-status";
+import { ActiveCarouselBatches } from "@/components/studio/active-carousel-batches";
 import { TemplatesTab } from "@/components/studio/templates-tab";
 import { UrlLibraryTab } from "@/components/studio/url-library-tab";
 import { BackgroundsManager } from "@/components/backgrounds-manager";
@@ -156,20 +156,22 @@ export function AppShell({ activeRoute }: AppShellProps) {
                         <CanvasFlowEditor />
                       </div>
                     ) : (
-                      <div className="flex flex-col lg:grid lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_480px] 2xl:grid-cols-[1fr_540px] gap-8 w-full items-start">
-                        <div className="flex flex-col gap-6 w-full max-w-full overflow-hidden">
-                          <StudioConfigurator
-                            studioViewMode={studioViewMode}
-                            onStudioViewModeChange={setStudioViewMode}
-                            onOpenStagingDrawer={() => setIsAssetDrawerOpen(true)}
-                            onOpenPresetDialog={() => setIsPresetDialogOpen(true)}
-                          />
-                          <GenerationStatus />
+                      <>
+                        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_480px] 2xl:grid-cols-[1fr_540px] gap-8 w-full items-start">
+                          <div className="flex flex-col gap-6 w-full max-w-full overflow-hidden">
+                            <StudioConfigurator
+                              studioViewMode={studioViewMode}
+                              onStudioViewModeChange={setStudioViewMode}
+                              onOpenStagingDrawer={() => setIsAssetDrawerOpen(true)}
+                              onOpenPresetDialog={() => setIsPresetDialogOpen(true)}
+                            />
+                          </div>
+                          <div className="w-full lg:sticky lg:top-6 lg:z-10">
+                            <GenerationPreview status="idle" />
+                          </div>
                         </div>
-                        <div className="w-full lg:sticky lg:top-6 lg:z-10">
-                          <GenerationPreview status="idle" />
-                        </div>
-                      </div>
+                        <ActiveCarouselBatches onNavigateTab={handleNavigateTab} />
+                      </>
                     )}
                   </div>
                 )}

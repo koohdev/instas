@@ -71,6 +71,14 @@ export function CapacityAllocationCard({
   const totalSegments = 56;
   const activeSegments = Math.round((percentage / 100) * totalSegments);
 
+  // Directional animation tracking (matching NumberFlow trend)
+  const prevSegmentsRef = React.useRef(activeSegments);
+  const isIncreasing = activeSegments >= prevSegmentsRef.current;
+
+  React.useEffect(() => {
+    prevSegmentsRef.current = activeSegments;
+  }, [activeSegments]);
+
   if (isLoading) {
     return (
       <Frame className="flex flex-col justify-between @container/card bg-gradient-to-t from-primary/5 to-card shadow-xs dark:bg-card h-full">
@@ -160,15 +168,23 @@ export function CapacityAllocationCard({
             role="img"
             aria-label={`${title} is ${percentage}%`}
           >
-            {Array.from({ length: totalSegments }).map((_, i) => (
-              <span
-                key={i}
-                aria-hidden="true"
-                className={`h-full w-1 shrink-0 rounded-full ${
-                  i < activeSegments ? barColorClass : "bg-muted"
-                }`}
-              />
-            ))}
+            {Array.from({ length: totalSegments }).map((_, i) => {
+              const isActive = i < activeSegments;
+              const delayMs = isIncreasing ? i * 6 : (totalSegments - 1 - i) * 6;
+
+              return (
+                <span
+                  key={i}
+                  aria-hidden="true"
+                  style={{ transitionDelay: `${delayMs}ms` }}
+                  className={`h-full w-1 shrink-0 rounded-full transition-all duration-300 ease-out ${
+                    isActive
+                      ? `${barColorClass} opacity-100 scale-y-100 shadow-xs`
+                      : "bg-muted/80 dark:bg-muted/40 opacity-40 scale-y-75"
+                  }`}
+                />
+              );
+            })}
           </div>
         </div>
 

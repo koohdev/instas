@@ -80,7 +80,7 @@ export function GenerationPreview({ status }: { status: string }) {
       }}
     >
       <div
-        className="relative w-full h-full overflow-hidden bg-[#0d0d0d] flex flex-col items-center justify-center border border-white/12 shadow-2xl"
+        className="relative w-full h-full overflow-hidden bg-[#0d0d0d] flex flex-col items-center justify-center border border-white/12 shadow-2xl @container"
         style={{ borderRadius: `${cardRadius}px` }}
       >
         {/* Noise Overlay */}
@@ -122,16 +122,16 @@ export function GenerationPreview({ status }: { status: string }) {
                 <div className="absolute inset-0 bg-black/30 pointer-events-none z-0" />
               )}
 
-              <div className="relative z-10 flex flex-col items-center text-center max-w-[90%] px-2">
+              <div className="relative z-10 flex flex-col items-center text-center w-[85.18%] px-0">
                 <h1
-                  className="font-extrabold text-2xl md:text-3xl lg:text-4xl text-white tracking-tight leading-[1.08] drop-shadow-md"
+                  className="font-extrabold text-white tracking-[-0.02em] leading-[1.05] drop-shadow-md text-[8.88cqw]"
                   style={{ fontFamily: `'${store.settings.fontFamily || "Inter"}', sans-serif` }}
                 >
                   {store.settings.coverTitle || "Your Title Here"}
                 </h1>
                 {store.settings.coverSubtitle && (
                   <p
-                    className="text-xs md:text-sm text-white/60 mt-3.5 font-normal leading-relaxed max-w-[90%]"
+                    className="text-white/60 font-normal leading-[1.4] tracking-[0.01em] text-[3.33cqw] mt-[3.5%] w-full max-w-full"
                     style={{ fontFamily: `'${store.settings.fontFamily || "Inter"}', sans-serif` }}
                   >
                     {store.settings.coverSubtitle}
@@ -140,7 +140,7 @@ export function GenerationPreview({ status }: { status: string }) {
               </div>
 
               <span
-                className="absolute top-4 left-5 text-[11px] font-semibold text-white/85 tracking-tight z-10"
+                className="absolute top-4 left-5 text-[10px] font-semibold text-white/60 tracking-wider uppercase z-10"
                 style={{ fontFamily: `'${store.settings.fontFamily || "Inter"}', sans-serif` }}
               >
                 {store.settings.topLeftText}
@@ -152,13 +152,13 @@ export function GenerationPreview({ status }: { status: string }) {
                 {store.settings.topRightText}
               </span>
               <span
-                className="absolute bottom-4 left-5 text-[10.5px] font-semibold text-white/50 z-10"
+                className="absolute bottom-4 left-5 text-[10px] font-semibold text-white/60 tracking-wider uppercase z-10"
                 style={{ fontFamily: `'${store.settings.fontFamily || "Inter"}', sans-serif` }}
               >
                 {store.settings.bottomLeftText}
               </span>
               <span
-                className="absolute bottom-4 right-5 text-[10px] font-medium text-white/60 z-10 flex items-center gap-1.5"
+                className="absolute bottom-4 right-5 text-[10px] font-semibold text-white/60 tracking-wider uppercase z-10 flex items-center gap-1.5"
                 style={{ fontFamily: `'${store.settings.fontFamily || "Inter"}', sans-serif` }}
               >
                 {store.settings.bottomRightText && <span>{store.settings.bottomRightText}</span>}
@@ -274,7 +274,7 @@ export function GenerationPreview({ status }: { status: string }) {
               </div>
 
               <span
-                className="absolute top-4 left-5 text-[11px] font-semibold text-white/85 tracking-tight z-10"
+                className="absolute top-4 left-5 text-[10px] font-semibold text-white/60 tracking-wider uppercase z-10"
                 style={{ fontFamily: `'${store.settings.fontFamily || "Inter"}', sans-serif` }}
               >
                 {store.settings.topLeftText}
@@ -286,13 +286,13 @@ export function GenerationPreview({ status }: { status: string }) {
                 {store.settings.topRightText}
               </span>
               <span
-                className="absolute bottom-4 left-5 text-[10.5px] font-semibold text-white/50 z-10"
+                className="absolute bottom-4 left-5 text-[10px] font-semibold text-white/60 tracking-wider uppercase z-10"
                 style={{ fontFamily: `'${store.settings.fontFamily || "Inter"}', sans-serif` }}
               >
                 01
               </span>
               <span
-                className="absolute bottom-4 right-5 text-[10px] font-medium text-white/60 z-10 flex items-center gap-1.5"
+                className="absolute bottom-4 right-5 text-[10px] font-semibold text-white/60 tracking-wider uppercase z-10 flex items-center gap-1.5"
                 style={{ fontFamily: `'${store.settings.fontFamily || "Inter"}', sans-serif` }}
               >
                 {store.settings.bottomRightText && <span>{store.settings.bottomRightText}</span>}
@@ -400,17 +400,17 @@ export function GenerationPreview({ status }: { status: string }) {
   );
 
   return (
-    <Frame className="w-full flex flex-col" variant="default" spacing="default">
-      <FramePanel className="gap-4 flex flex-col p-4">
+    <Frame className="w-full flex flex-col min-h-[560px] sm:min-h-[640px] lg:h-[720px]" variant="default" spacing="default">
+      <FramePanel className="gap-3 flex flex-col p-3 sm:p-4 h-full justify-between overflow-y-auto custom-scrollbar">
         {/* Header Toolbar Row */}
-        <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0 w-full">
           {/* Left: Slide mode toggle */}
-          <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
+          <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 w-full sm:w-auto">
             <Button
               variant={previewSlideMode === "cover" ? "default" : "ghost"}
               size="sm"
               onClick={() => setPreviewSlideMode("cover")}
-              className={`h-full text-xs font-semibold px-3 rounded-md cursor-pointer transition-all ${
+              className={`flex-1 sm:flex-initial h-full text-xs font-semibold px-3 rounded-md cursor-pointer transition-all whitespace-nowrap ${
                 previewSlideMode === "cover"
                   ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
@@ -422,7 +422,7 @@ export function GenerationPreview({ status }: { status: string }) {
               variant={previewSlideMode === "content" ? "default" : "ghost"}
               size="sm"
               onClick={() => setPreviewSlideMode("content")}
-              className={`h-full text-xs font-semibold px-3 rounded-md cursor-pointer transition-all ${
+              className={`flex-1 sm:flex-initial h-full text-xs font-semibold px-3 rounded-md cursor-pointer transition-all whitespace-nowrap ${
                 previewSlideMode === "content"
                   ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
@@ -434,44 +434,60 @@ export function GenerationPreview({ status }: { status: string }) {
 
           <Badge
             variant="outline"
-            className="text-[10px] font-mono border-primary/40 text-primary capitalize h-6 px-2"
+            className="text-[10px] font-mono border-primary/40 text-primary capitalize h-6 px-2 self-end sm:self-auto shrink-0"
           >
             {store.aspectRatio} · {store.settings.coverStyle}
           </Badge>
         </div>
 
-        {/* View Mode Toggle (Raw / Instagram) */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 flex-1">
+        {/* Canvas Area Container with Dynamic Aspect Scaling & Vertical Scrollability */}
+        <div className="flex-1 flex items-center justify-center min-h-0 w-full overflow-y-auto overflow-x-hidden custom-scrollbar my-auto py-2">
+          <div
+            className={`w-full flex flex-col items-center justify-center transition-all duration-300 my-auto ${
+              store.aspectRatio === "16:9"
+                ? "max-w-[480px]"
+                : store.aspectRatio === "1:1"
+                ? "max-w-[310px] sm:max-w-[380px]"
+                : store.aspectRatio === "9:16"
+                ? "max-w-[260px] sm:max-w-[320px] py-2 sm:py-6"
+                : "max-w-[280px] sm:max-w-[360px]"
+            }`}
+          >
+            {viewMode === "instagram" ? InstagramFrame : SlideCanvas}
+          </div>
+        </div>
+
+        {/* View Mode Toggle (Raw Slide View vs Instagram Feed Frame - Below Canvas) */}
+        <div className="flex items-center gap-2 pt-1 shrink-0 w-full">
+          <div className="flex items-center h-9 p-0.5 bg-[#26262699] rounded-xl border border-[#FFFFFF0D] w-full gap-0.5">
             <button
+              type="button"
               onClick={() => setViewMode("raw")}
-              className={`flex-1 h-full flex items-center justify-center gap-1.5 text-xs font-semibold px-3 rounded-md transition-all cursor-pointer ${
+              className={`flex-1 h-full flex items-center justify-center gap-1.5 text-xs font-semibold px-3 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
                 viewMode === "raw"
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-[#0A0A0A] text-[#FAFAFA] font-extrabold shadow-xs"
+                  : "text-[#A1A1A1] hover:text-white"
               }`}
             >
-              <Monitor className="w-3.5 h-3.5" />
-              Raw Slide View
+              <Monitor className="w-3.5 h-3.5 shrink-0" />
+              <span>Raw Slide View</span>
             </button>
             <button
+              type="button"
               onClick={() => setViewMode("instagram")}
-              className={`flex-1 h-full flex items-center justify-center gap-1.5 text-xs font-semibold px-3 rounded-md transition-all cursor-pointer ${
+              className={`flex-1 h-full flex items-center justify-center gap-1.5 text-xs font-semibold px-3 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
                 viewMode === "instagram"
-                  ? "bg-gradient-to-r from-pink-600/90 to-purple-600/90 text-white shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-[#0A0A0A] text-[#FAFAFA] font-extrabold shadow-xs"
+                  : "text-[#A1A1A1] hover:text-white"
               }`}
             >
-              <Smartphone className="w-3.5 h-3.5" />
-              Instagram Feed Frame
+              <Smartphone className="w-3.5 h-3.5 shrink-0" />
+              <span>Instagram Feed Frame</span>
             </button>
           </div>
         </div>
 
-        {/* Canvas Area */}
-        {viewMode === "instagram" ? InstagramFrame : SlideCanvas}
-
-        <p className="text-[10px] text-muted-foreground text-center pt-1">
+        <p className="text-[10px] text-[#A1A1A1] text-center pt-0.5 shrink-0">
           {viewMode === "instagram" ? "Instagram Mobile Feed Frame" : "Raw Slide Canvas"} ·{" "}
           {previewSlideMode === "cover" ? "Cover Slide" : `Content Slide (${previewSiteUrl})`} ·{" "}
           {store.aspectRatio}

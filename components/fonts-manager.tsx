@@ -182,103 +182,108 @@ export function FontsManager({ onSelectFont }: FontsManagerProps) {
         </FramePanel>
       </Frame>
 
-      {/* Control Bar: Search, Category Filters, Specimen Text, & Size Slider */}
+      {/* Control Bar: Search, Category Filters, Specimen Text, & Size Slider (Design System Spec) */}
       <Frame variant="default" spacing="default" className="w-full">
-        <FramePanel className="p-3 gap-3">
+        <FramePanel className="p-3 gap-3 flex flex-col">
           {/* Top Control Row */}
-          <div className="flex flex-col md:flex-row md:items-center gap-3 w-full">
-            {/* Search */}
-            <div className="relative w-full md:w-60 shrink-0">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search fonts by family..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-8 text-xs h-8 bg-background/80 w-full"
-              />
+          <div className="flex flex-col md:flex-row md:items-center gap-3 w-full justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
+              {/* Search */}
+              <div className="relative w-full sm:w-64 shrink-0">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-[#A1A1AA]" />
+                <Input
+                  placeholder="Search fonts by family..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-8 text-xs h-9 bg-background dark:bg-[#09090B] border-input dark:border-[#27272A] rounded-xl text-foreground dark:text-white w-full"
+                />
+              </div>
+
+              {/* Category Filter Pills (with rounded-[6px] active pill) */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:flex items-center min-h-[36px] md:h-9 p-0.5 bg-muted/60 dark:bg-[#09090B] border border-border dark:border-[#27272A] rounded-xl gap-0.5 shrink-0 w-full md:w-auto">
+                <button
+                  onClick={() => {
+                    playClick();
+                    setFilterCategory("all");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3.5 rounded-[6px] transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
+                    filterCategory === "all"
+                      ? "bg-background dark:bg-[#18181B] text-foreground dark:text-white font-extrabold shadow-xs"
+                      : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white"
+                  }`}
+                >
+                  All ({Object.keys(familyMap).length})
+                </button>
+
+                <button
+                  onClick={() => {
+                    playClick();
+                    setFilterCategory("active");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3.5 rounded-[6px] transition-all flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
+                    filterCategory === "active"
+                      ? "bg-background dark:bg-[#18181B] text-foreground dark:text-white font-extrabold shadow-xs"
+                      : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white"
+                  }`}
+                >
+                  <CheckCircle2 className="w-3 h-3" /> Active
+                </button>
+
+                <button
+                  onClick={() => {
+                    playClick();
+                    setFilterCategory("system");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3.5 rounded-[6px] transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
+                    filterCategory === "system"
+                      ? "bg-background dark:bg-[#18181B] text-foreground dark:text-white font-extrabold shadow-xs"
+                      : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white"
+                  }`}
+                >
+                  System
+                </button>
+
+                <button
+                  onClick={() => {
+                    playClick();
+                    setFilterCategory("custom");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3.5 rounded-[6px] transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
+                    filterCategory === "custom"
+                      ? "bg-background dark:bg-[#18181B] text-foreground dark:text-white font-extrabold shadow-xs"
+                      : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white"
+                  }`}
+                >
+                  Custom
+                </button>
+              </div>
             </div>
 
-            {/* Category Filter Pills - copied directly from url-library-tab */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0 w-full md:w-auto">
-              <button
-                onClick={() => {
-                  playClick();
-                  setFilterCategory("all");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
-                  filterCategory === "all"
-                    ? "bg-background text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                All ({Object.keys(familyMap).length})
-              </button>
-
-              <button
-                onClick={() => {
-                  playClick();
-                  setFilterCategory("active");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
-                  filterCategory === "active"
-                    ? "bg-primary text-primary-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <CheckCircle2 className="w-3 h-3" /> Active
-              </button>
-
-              <button
-                onClick={() => {
-                  playClick();
-                  setFilterCategory("system");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
-                  filterCategory === "system"
-                    ? "bg-background text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                System
-              </button>
-
-              <button
-                onClick={() => {
-                  playClick();
-                  setFilterCategory("custom");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
-                  filterCategory === "custom"
-                    ? "bg-background text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Custom
-              </button>
-            </div>
-
-            {/* Active Font Pill - h-8 height */}
-            <div className="h-8 ml-auto hidden lg:flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 px-3 rounded-lg border border-border/40 shrink-0">
+            {/* Active Font Pill */}
+            <div className="h-9 ml-auto hidden lg:flex items-center px-3.5 rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-xs text-muted-foreground dark:text-[#A1A1AA] shrink-0 gap-2 font-mono">
               <span className="text-[11px]">Active Studio Font:</span>
-              <span className="font-bold text-foreground font-mono" style={{ fontFamily: `'${activeFontFamily}', sans-serif` }}>
+              <span className="font-bold text-foreground dark:text-white uppercase tracking-wider" style={{ fontFamily: `'${activeFontFamily}', sans-serif` }}>
                 {activeFontFamily}
               </span>
             </div>
           </div>
 
           {/* Bottom Control Row: Specimen Text & Font Size Slider */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 border-t border-border/40 w-full">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 border-t border-border dark:border-[#FFFFFF0D] w-full">
             {/* Specimen Input & Shortcuts */}
-            <div className="flex items-center gap-2 w-full md:flex-1">
-              <span className="text-xs font-semibold text-muted-foreground shrink-0">Specimen:</span>
-              <Input
-                placeholder="Type specimen text..."
-                value={specimenText}
-                onChange={(e) => setSpecimenText(e.target.value)}
-                className="text-xs h-8 bg-background/80 flex-1 w-full"
-              />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 w-full md:flex-1">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <span className="text-xs font-semibold text-muted-foreground dark:text-[#A1A1AA] shrink-0">Specimen:</span>
+                <Input
+                  placeholder="Type specimen text..."
+                  value={specimenText}
+                  onChange={(e) => setSpecimenText(e.target.value)}
+                  className="text-xs h-9 bg-background dark:bg-[#09090B] border-input dark:border-[#27272A] text-foreground dark:text-white flex-1 sm:w-64"
+                />
+              </div>
+
               {/* Quick Presets Dropdown/Pills */}
-              <div className="hidden xl:flex items-center gap-1">
+              <div className="hidden xl:flex items-center gap-1.5 shrink-0">
                 {SPECIMEN_PRESETS.map((preset, idx) => (
                   <button
                     key={idx}
@@ -286,7 +291,7 @@ export function FontsManager({ onSelectFont }: FontsManagerProps) {
                       playClick();
                       setSpecimenText(preset);
                     }}
-                    className="h-8 text-[11px] font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/80 px-2.5 rounded-lg border border-border/40 transition-colors truncate max-w-[130px] flex items-center justify-center cursor-pointer"
+                    className="h-9 text-xs font-semibold text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] hover:bg-muted dark:hover:bg-[#18181B] px-3.5 rounded-xl transition-all flex items-center justify-center cursor-pointer shrink-0"
                     title={preset}
                   >
                     Preset #{idx + 1}
@@ -295,13 +300,13 @@ export function FontsManager({ onSelectFont }: FontsManagerProps) {
               </div>
             </div>
 
-            {/* Font Size Slider - 100% width on mobile/tablet */}
-            <div className="h-9 md:h-8 flex items-center justify-between md:justify-start gap-2.5 bg-muted/30 px-3 rounded-lg border border-border/40 w-full md:w-auto shrink-0">
+            {/* Font Size Slider */}
+            <div className="h-9 flex items-center justify-between gap-2.5 bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] px-3.5 rounded-xl w-full md:w-auto shrink-0">
               <div className="flex items-center gap-1.5 shrink-0">
-                <Sliders className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-xs font-semibold text-muted-foreground">Size:</span>
+                <Sliders className="w-3.5 h-3.5 text-muted-foreground dark:text-[#A1A1AA]" />
+                <span className="text-xs font-semibold text-muted-foreground dark:text-[#A1A1AA]">Size:</span>
               </div>
-              <div className="flex-1 md:w-36 max-w-full">
+              <div className="flex-1 md:w-32 max-w-full">
                 <Slider
                   value={[specimenSize]}
                   min={16}
@@ -314,7 +319,7 @@ export function FontsManager({ onSelectFont }: FontsManagerProps) {
                   className="cursor-pointer"
                 />
               </div>
-              <span className="text-xs font-mono font-bold text-foreground w-8 text-right shrink-0">{specimenSize}px</span>
+              <span className="text-xs font-mono font-bold text-foreground dark:text-white w-8 text-right shrink-0">{specimenSize}px</span>
             </div>
           </div>
         </FramePanel>
@@ -396,52 +401,59 @@ export function FontsManager({ onSelectFont }: FontsManagerProps) {
                     </span>
                   </div>
 
-                  {/* Card Footer Actions */}
-                  <div className="flex items-center justify-between pt-1 gap-2">
-                    <span className="text-[10.5px] font-mono text-muted-foreground truncate">
-                      {item.filesCount} file{item.filesCount !== 1 ? "s" : ""} • {formatFileSize(item.totalSize)}
-                    </span>
+                  {/* Card Footer Actions (Design System Spec) */}
+                  <div className="flex flex-col gap-2.5 pt-2 border-t border-[#27272A] w-full">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-mono text-[#A1A1AA] truncate">
+                        {item.filesCount} file{item.filesCount !== 1 ? "s" : ""} • {formatFileSize(item.totalSize)}
+                      </span>
+                      {item.isSystem && (
+                        <Badge variant="outline" className="text-[9px] font-mono border-[#3F3F46] text-[#A1A1AA] uppercase px-1.5 py-0.2">
+                          Built-in
+                        </Badge>
+                      )}
+                    </div>
 
-                    <div className="flex items-center gap-1.5">
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
+                    <div className="flex items-center h-[42px] gap-2 w-full">
+                      <button
+                        type="button"
+                        onClick={() => handleApply(item.family)}
+                        className={`flex-1 h-full rounded-xl border border-transparent font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs active:scale-[0.98] ${
+                          isSelected
+                            ? "bg-foreground text-background hover:bg-foreground/90"
+                            : "bg-foreground text-background hover:bg-foreground/90"
+                        }`}
+                      >
+                        {isSelected ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                            <span>Active Studio Font</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-3.5 h-3.5 fill-current" />
+                            <span>Use in Studio</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => {
                           playClick();
                           navigator.clipboard.writeText(item.family);
                           setCopiedFont(item.family);
                           setTimeout(() => setCopiedFont(null), 2000);
                         }}
-                        className="size-7 text-muted-foreground hover:text-foreground cursor-pointer active:scale-[0.97]"
+                        className="h-full aspect-square rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-foreground dark:text-white flex items-center justify-center hover:bg-muted dark:hover:bg-[#18181B] hover:border-border dark:hover:border-[#3F3F46] cursor-pointer transition-all active:scale-[0.98] shrink-0"
                         title="Copy Font Family Name"
                       >
                         {copiedFont === item.family ? (
-                          <Check className="w-3 h-3 text-emerald-400" />
+                          <Check className="w-4 h-4 text-emerald-400" />
                         ) : (
-                          <Copy className="w-3 h-3" />
+                          <Copy className="w-4 h-4 text-foreground dark:text-white" />
                         )}
-                      </Button>
-
-                      <Button
-                        size="xs"
-                        variant={isSelected ? "secondary" : "default"}
-                        onClick={() => handleApply(item.family)}
-                        className={`h-7 px-3 text-xs font-bold gap-1 cursor-pointer active:scale-[0.97] transition-all ${
-                          isSelected
-                            ? "bg-primary/10 text-primary border border-primary/30"
-                            : "bg-primary hover:bg-primary/90 text-primary-foreground"
-                        }`}
-                      >
-                        {isSelected ? (
-                          <>
-                            <Check className="w-3 h-3" /> Selected
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-3 h-3 fill-current" /> Use in Studio
-                          </>
-                        )}
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 </FramePanel>

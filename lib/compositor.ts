@@ -44,6 +44,27 @@ export interface CompositeParams {
   aspectRatio?: AspectRatio;
 }
 
+// Global Browser Pool Singleton for 5x faster batch rendering
+let globalBrowserPool: Browser | null = null;
+
+export async function getSharedBrowser(): Promise<Browser> {
+  if (globalBrowserPool && globalBrowserPool.isConnected()) {
+    return globalBrowserPool;
+  }
+  globalBrowserPool = await chromium.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+  });
+  return globalBrowserPool;
+}
+
+export async function closeSharedBrowser(): Promise<void> {
+  if (globalBrowserPool) {
+    await globalBrowserPool.close().catch(() => {});
+    globalBrowserPool = null;
+  }
+}
+
 export async function compositeSlide(
   params: CompositeParams,
   baseUrl: string,
@@ -52,7 +73,7 @@ export async function compositeSlide(
   const id = crypto.randomUUID();
   saveRenderData(id, params);
 
-  const browser = existingBrowser || (await chromium.launch({ headless: true }));
+  const browser = existingBrowser || (await getSharedBrowser());
   const dims = ASPECT_RATIO_DIMENSIONS[params.aspectRatio ?? "4:5"];
   const context = await browser.newContext({
     viewport: { width: dims.width, height: dims.height },
@@ -97,7 +118,7 @@ export async function compositeSlide(
     }).catch(() => {});
 
     // Extra settle time for font painting
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(400);
 
     let buf: Buffer;
     try {
@@ -107,7 +128,7 @@ export async function compositeSlide(
         timeout: 20000,
       });
     } catch {
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(300);
       buf = await page.screenshot({
         type: "png",
         animations: "disabled",
@@ -116,13 +137,18 @@ export async function compositeSlide(
     }
 
     await context.close();
-    if (!existingBrowser) await browser.close();
+    // Only close browser if an explicit unshared browser was passed in
+    if (existingBrowser && existingBrowser !== globalBrowserPool) {
+      await existingBrowser.close().catch(() => {});
+    }
     deleteRenderData(id);
 
     return buf;
   } catch (err) {
     await context.close();
-    if (!existingBrowser) await browser.close();
+    if (existingBrowser && existingBrowser !== globalBrowserPool) {
+      await existingBrowser.close().catch(() => {});
+    }
     deleteRenderData(id);
     throw err;
   }

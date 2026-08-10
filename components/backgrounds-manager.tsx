@@ -167,65 +167,66 @@ export function BackgroundsManager({ activeBackground, onSelectBackground }: Bac
         </FramePanel>
       </Frame>
 
-      {/* Control Bar: Search, Filters, & Aspect Ratio Switcher - Standardized to h-8 height */}
+      {/* Control Bar: Search, Filters, & Aspect Ratio Switcher (Screenshot & Mobile Responsiveness Spec) */}
       <Frame variant="default" spacing="default" className="w-full">
         <FramePanel className="p-3">
-          <div className="flex flex-col md:flex-row md:items-center gap-3 w-full">
-            {/* Search */}
-            <div className="relative w-full md:w-60 shrink-0">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search backgrounds..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 text-xs h-8 bg-background/80 w-full"
-              />
+          <div className="flex flex-col md:flex-row md:items-center gap-3 w-full justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
+              {/* Search (Screenshot 3 Spec) */}
+              <div className="relative w-full sm:w-64 shrink-0">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-[#A1A1AA]" />
+                <Input
+                  placeholder="Search backgrounds..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8 text-xs h-9 bg-background dark:bg-[#09090B] border-input dark:border-[#27272A] rounded-xl text-foreground dark:text-white w-full"
+                />
+              </div>
+
+              {/* Status Filter Pills (Screenshot 3 Spec with rounded-[6px] active pill) */}
+              <div className="grid grid-cols-2 md:flex items-center min-h-[36px] md:h-9 p-0.5 bg-muted/60 dark:bg-[#09090B] border border-border dark:border-[#27272A] rounded-xl gap-0.5 shrink-0 w-full md:w-auto">
+                <button
+                  onClick={() => {
+                    playClick();
+                    setStatusFilter("all");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3.5 rounded-[6px] transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
+                    statusFilter === "all"
+                      ? "bg-background dark:bg-[#18181B] text-foreground dark:text-white font-extrabold shadow-xs"
+                      : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white"
+                  }`}
+                >
+                  All ({store.backgroundList.length})
+                </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setStatusFilter("active");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3.5 rounded-[6px] transition-all flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
+                    statusFilter === "active"
+                      ? "bg-background dark:bg-[#18181B] text-foreground dark:text-white font-extrabold shadow-xs"
+                      : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white"
+                  }`}
+                >
+                  Active in Studio
+                </button>
+              </div>
             </div>
 
-            {/* Divider */}
-            <div className="hidden md:block w-px h-6 bg-border/50 shrink-0" />
-
-            {/* Status Filter Pills - copied directly from url-library-tab */}
-            <div className="grid grid-cols-2 md:flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0 w-full md:w-auto">
-              <button
-                onClick={() => {
-                  playClick();
-                  setStatusFilter("all");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
-                  statusFilter === "all"
-                    ? "bg-background text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                All ({store.backgroundList.length})
-              </button>
-              <button
-                onClick={() => {
-                  playClick();
-                  setStatusFilter("active");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
-                  statusFilter === "active"
-                    ? "bg-primary text-primary-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <CheckCircle2 className="w-3 h-3" /> Active in Studio
-              </button>
-            </div>
-
-            {/* Aspect Ratio Switcher Toggle */}
-            <div className="flex items-center justify-between md:justify-end h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 w-full md:w-auto md:ml-auto shrink-0">
-              <span className="text-[10px] font-semibold text-muted-foreground px-2">Ratio:</span>
-              <div className="flex items-center gap-0.5 flex-1 md:flex-initial justify-end">
+            {/* Aspect Ratio Switcher Toggle (Screenshot 2 Spec with rounded-[6px] buttons) */}
+            <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto">
+              <span className="text-xs font-semibold text-muted-foreground dark:text-[#A1A1AA]">Ratio:</span>
+              <div className="flex items-center h-9 p-0.5 bg-muted/60 dark:bg-[#09090B] border border-border dark:border-[#27272A] rounded-xl gap-0.5 flex-1 sm:flex-initial">
                 <button
                   onClick={() => {
                     playClick();
                     setAspectRatio("4/5");
                   }}
-                  className={`h-7 text-[11px] font-mono font-bold px-3 rounded transition-all flex items-center justify-center cursor-pointer ${
-                    aspectRatio === "4/5" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  className={`h-full flex-1 sm:flex-initial text-xs font-bold px-3.5 rounded-[6px] transition-all flex items-center justify-center cursor-pointer ${
+                    aspectRatio === "4/5"
+                      ? "bg-zinc-900 text-white dark:bg-white dark:text-black font-extrabold shadow-xs"
+                      : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white font-semibold"
                   }`}
                   title="4:5 Portrait Carousel Ratio"
                 >
@@ -236,8 +237,10 @@ export function BackgroundsManager({ activeBackground, onSelectBackground }: Bac
                     playClick();
                     setAspectRatio("1/1");
                   }}
-                  className={`h-7 text-[11px] font-mono font-bold px-3 rounded transition-all flex items-center justify-center cursor-pointer ${
-                    aspectRatio === "1/1" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  className={`h-full flex-1 sm:flex-initial text-xs font-bold px-3.5 rounded-[6px] transition-all flex items-center justify-center cursor-pointer ${
+                    aspectRatio === "1/1"
+                      ? "bg-zinc-900 text-white dark:bg-white dark:text-black font-extrabold shadow-xs"
+                      : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white font-semibold"
                   }`}
                   title="1:1 Square Carousel Ratio"
                 >
@@ -248,8 +251,10 @@ export function BackgroundsManager({ activeBackground, onSelectBackground }: Bac
                     playClick();
                     setAspectRatio("16/9");
                   }}
-                  className={`h-7 text-[11px] font-mono font-bold px-3 rounded transition-all flex items-center justify-center cursor-pointer ${
-                    aspectRatio === "16/9" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  className={`h-full flex-1 sm:flex-initial text-xs font-bold px-3.5 rounded-[6px] transition-all flex items-center justify-center cursor-pointer ${
+                    aspectRatio === "16/9"
+                      ? "bg-zinc-900 text-white dark:bg-white dark:text-black font-extrabold shadow-xs"
+                      : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white font-semibold"
                   }`}
                   title="16:9 Landscape Carousel Ratio"
                 >
@@ -387,68 +392,65 @@ export function BackgroundsManager({ activeBackground, onSelectBackground }: Bac
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-border/40 gap-1.5">
-                        <Button
-                          size="xs"
-                          variant={isSelected ? "secondary" : "default"}
+                      {/* Card Action Buttons (Screenshot 1 Spec) */}
+                      <div className="flex items-center h-[42px] gap-2 w-full">
+                        <button
+                          type="button"
                           onClick={() => {
                             playClick();
                             if (onSelectBackground) {
                               onSelectBackground(bg.filename);
                             } else {
-                              store.updateSetting("bgType", "custom");
                               store.updateSetting("customBgImage", bg.filename);
                               store.updateSetting("showBlurredBg", false);
                               store.setActiveTab("studio");
                             }
                           }}
-                          className={`flex-1 text-xs gap-1 h-7 font-bold cursor-pointer active:scale-[0.97] transition-all ${
+                          className={`flex-1 h-full rounded-xl border border-transparent font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs active:scale-[0.98] ${
                             isSelected
-                              ? "bg-primary/10 text-primary border border-primary/30"
-                              : "bg-primary hover:bg-primary/90 text-primary-foreground"
+                              ? "bg-foreground text-background hover:bg-foreground/90"
+                              : "bg-foreground text-background hover:bg-foreground/90"
                           }`}
                         >
                           {isSelected ? (
                             <>
-                              <Check className="w-3 h-3" /> Selected
+                              <Check className="w-3.5 h-3.5 stroke-[3]" />
+                              <span>Active in Studio</span>
                             </>
                           ) : (
                             <>
-                              <Play className="w-3 h-3 fill-current" /> Use in Studio
+                              <Play className="w-3.5 h-3.5 fill-current" />
+                              <span>Use in Studio</span>
                             </>
                           )}
-                        </Button>
+                        </button>
 
-                        <div className="flex items-center gap-0.5">
-                          <Button
-                            variant="ghost"
-                            size="icon-xs"
-                            onClick={() => {
-                              playClick();
-                              navigator.clipboard.writeText(bg.filename);
-                              setCopiedFile(bg.filename);
-                              setTimeout(() => setCopiedFile(null), 2000);
-                            }}
-                            className="size-7 text-muted-foreground hover:text-foreground cursor-pointer active:scale-[0.97]"
-                            title="Copy Filename"
-                          >
-                            {copiedFile === bg.filename ? (
-                              <Check className="w-3 h-3 text-emerald-400" />
-                            ) : (
-                              <Copy className="w-3 h-3" />
-                            )}
-                          </Button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playClick();
+                            navigator.clipboard.writeText(bg.filename);
+                            setCopiedFile(bg.filename);
+                            setTimeout(() => setCopiedFile(null), 2000);
+                          }}
+                          className="h-full aspect-square rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-foreground dark:text-white flex items-center justify-center hover:bg-muted dark:hover:bg-[#18181B] hover:border-border dark:hover:border-[#3F3F46] cursor-pointer transition-all active:scale-[0.98] shrink-0"
+                          title="Copy Filename"
+                        >
+                          {copiedFile === bg.filename ? (
+                            <Check className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <Copy className="w-4 h-4 text-foreground dark:text-white" />
+                          )}
+                        </button>
 
-                          <Button
-                            variant="ghost"
-                            size="icon-xs"
-                            onClick={() => handleDelete(bg.filename)}
-                            className="size-7 text-muted-foreground hover:text-destructive cursor-pointer active:scale-[0.97]"
-                            title="Delete Asset"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(bg.filename)}
+                          className="h-full aspect-square rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-muted-foreground dark:text-[#A1A1AA] hover:text-red-500 flex items-center justify-center hover:bg-muted dark:hover:bg-[#18181B] hover:border-red-500/40 cursor-pointer transition-all active:scale-[0.98] shrink-0"
+                          title="Delete Asset"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   </FramePanel>
