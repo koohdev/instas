@@ -48,14 +48,10 @@ export function BatchQueuePanel() {
     const urls = urlsInput
       .split("\n")
       .map((u) => u.trim())
-      .filter((u) => Boolean(u) && /^https?:\/\//i.test(u));
+      .filter(Boolean);
+    if (urls.length === 0) return;
 
-    if (urls.length === 0) {
-      alert("No valid URLs found. Please ensure each URL starts with http:// or https://");
-      return;
-    }
-
-    // Validate URLs strictly
+    // Validate URLs
     const invalidUrls: string[] = [];
     for (const url of urls) {
       try {
