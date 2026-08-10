@@ -123,6 +123,8 @@ interface AppState {
   // Actions
   setActiveTab: (tab: string) => void;
   setUrls: (urls: string) => void;
+  reorderUrls: (newUrlList: string[]) => void;
+  appendUrls: (newUrlsToAppend: string[]) => void;
   setBatchName: (name: string) => void;
   setAspectRatio: (ratio: AspectRatio) => void;
   setSelectedSavedUrlIds: (ids: string[]) => void;
@@ -206,6 +208,20 @@ export const useAppStore = create<AppState>()(
 
       setActiveTab: (tab) => set({ activeTab: tab }),
       setUrls: (urls) => set({ urls }),
+      reorderUrls: (newUrlList) => set({ urls: newUrlList.join("\n") }),
+      appendUrls: (newUrlsToAppend) => {
+        const existing = get().urls.split("\n").map((u) => u.trim()).filter(Boolean);
+        const setSeen = new Set(existing.map((u) => u.toLowerCase()));
+        const added: string[] = [];
+        newUrlsToAppend.forEach((u) => {
+          const clean = u.trim();
+          if (clean && !setSeen.has(clean.toLowerCase())) {
+            setSeen.add(clean.toLowerCase());
+            added.push(clean);
+          }
+        });
+        set({ urls: [...existing, ...added].join("\n") });
+      },
       setBatchName: (name) => set({ batchName: name }),
       setAspectRatio: (ratio) => {
         // Auto-apply layout presets when switching aspect ratios

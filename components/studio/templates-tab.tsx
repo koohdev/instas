@@ -20,6 +20,7 @@ import {
   Palette,
   Layout,
   Check,
+  SquarePen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -136,87 +137,86 @@ export function TemplatesTab() {
         </FramePanel>
       </Frame>
 
-      {/* Control Bar: Search & Filter Tabs - Standardized to h-8 height */}
+      {/* Control Bar: Search & Filter Tabs - Responsive Mobile Stacking Spec */}
       <Frame variant="default" spacing="default" className="w-full">
-        <FramePanel className="p-2.5">
-          <div className="flex items-center gap-2 w-full">
-            {/* Search */}
-            <div className="relative shrink-0 w-48 sm:w-64">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search templates..."
-                className="pl-8 h-8 text-xs bg-background/80 w-full"
-              />
-            </div>
+        <FramePanel className="p-3">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 w-full justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
+              {/* Search */}
+              <div className="relative w-full sm:w-64 shrink-0">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-[#A1A1AA]" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search templates..."
+                  className="pl-8 h-9 text-xs bg-background dark:bg-[#09090B] border-input dark:border-[#27272A] rounded-xl text-foreground dark:text-white w-full"
+                />
+              </div>
 
-            {/* Divider */}
-            <div className="w-px h-6 bg-border/50 shrink-0 hidden sm:block" />
+              {/* Category Pills - Responsive grid on mobile with rounded-[6px] active buttons */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:flex items-center min-h-[36px] md:h-9 gap-0.5 bg-muted/60 dark:bg-[#09090B] p-0.5 rounded-xl border border-border dark:border-[#27272A] shrink-0 w-full md:w-auto">
+                <button
+                  onClick={() => {
+                    playClick();
+                    setFilterCategory("all");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3 rounded-[6px] transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
+                    filterCategory === "all"
+                      ? "bg-background dark:bg-[#18181B] text-foreground dark:text-white font-extrabold shadow-xs"
+                      : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white"
+                  }`}
+                >
+                  All ({store.templates.length})
+                </button>
 
-            {/* Category Pills - h-8 height */}
-            <div className="flex items-center h-8 gap-0.5 bg-muted/60 p-0.5 rounded-lg border border-border/50 shrink-0">
-              <button
-                onClick={() => {
-                  playClick();
-                  setFilterCategory("all");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
-                  filterCategory === "all"
-                    ? "bg-background text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                All ({store.templates.length})
-              </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setFilterCategory("active");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3 rounded-[6px] transition-all inline-flex items-center justify-center gap-1 cursor-pointer w-full md:w-auto ${
+                    filterCategory === "active"
+                      ? "bg-background dark:bg-[#18181B] text-foreground dark:text-white font-extrabold shadow-xs"
+                      : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white"
+                  }`}
+                >
+                  <CheckCircle2 className="w-3 h-3" /> Active
+                </button>
 
-              <button
-                onClick={() => {
-                  playClick();
-                  setFilterCategory("active");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all inline-flex items-center gap-1 cursor-pointer ${
-                  filterCategory === "active"
-                    ? "bg-primary text-primary-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <CheckCircle2 className="w-3 h-3" /> Active
-              </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setFilterCategory("default");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3 rounded-[6px] transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
+                    filterCategory === "default"
+                      ? "bg-background dark:bg-[#18181B] text-foreground dark:text-white font-extrabold shadow-xs"
+                      : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white"
+                  }`}
+                >
+                  Default
+                </button>
 
-              <button
-                onClick={() => {
-                  playClick();
-                  setFilterCategory("default");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
-                  filterCategory === "default"
-                    ? "bg-background text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Default
-              </button>
-
-              <button
-                onClick={() => {
-                  playClick();
-                  setFilterCategory("custom");
-                }}
-                className={`h-full flex-none text-xs font-semibold px-3 rounded-md transition-all flex items-center justify-center cursor-pointer ${
-                  filterCategory === "custom"
-                    ? "bg-background text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Custom
-              </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setFilterCategory("custom");
+                  }}
+                  className={`h-8 md:h-full text-xs font-bold px-3 rounded-[6px] transition-all flex items-center justify-center cursor-pointer w-full md:w-auto ${
+                    filterCategory === "custom"
+                      ? "bg-background dark:bg-[#18181B] text-foreground dark:text-white font-extrabold shadow-xs"
+                      : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white"
+                  }`}
+                >
+                  Custom
+                </button>
+              </div>
             </div>
 
             {activeTemplate && (
-              <div className="h-8 ml-auto hidden md:flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 px-3 rounded-lg border border-border/40 shrink-0">
+              <div className="h-9 ml-auto hidden lg:flex items-center gap-2 text-xs text-muted-foreground dark:text-[#A1A1AA] bg-background dark:bg-[#09090B] px-3.5 rounded-xl border border-border dark:border-[#27272A] shrink-0 font-mono">
                 <span className="text-[11px]">Active Preset:</span>
-                <span className="font-bold text-foreground font-mono">{activeTemplate.name}</span>
+                <span className="font-bold text-foreground dark:text-white uppercase">{activeTemplate.name}</span>
               </div>
             )}
           </div>
@@ -235,7 +235,7 @@ export function TemplatesTab() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4.5 w-full">
           {filteredTemplates.map((item) => {
             const isActive = store.activeTemplateId === item.id;
             return (
@@ -348,100 +348,85 @@ export function TemplatesTab() {
                     </div>
                   </div>
 
-                  {/* Horizontal Specs Bar */}
-                  <div className="grid grid-cols-2 gap-1.5 p-2 rounded-lg bg-muted/40 border border-border/40 text-[10.5px]">
-                    <div className="flex items-center gap-1 text-muted-foreground truncate">
-                      <Palette className="w-3 h-3 shrink-0 text-primary/70" />
-                      <span>Font:</span>
-                      <span className="font-semibold text-foreground truncate">{item.fontFamily || "Inter"}</span>
+                  {/* Specs Pill Bar (Screenshot Spec) */}
+                  <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-[#09090B] border border-[#27272A] text-[11px] font-sans text-[#FAFAFA] w-full gap-2 overflow-x-auto">
+                    <div className="truncate shrink min-w-0">
+                      <span className="text-[#A1A1AA]">Font:</span>{" "}
+                      <span className="font-semibold text-[#FAFAFA] truncate">{item.fontFamily || "Inter"}</span>
                     </div>
-
-                    <div className="flex items-center gap-1 text-muted-foreground truncate">
-                      <Layout className="w-3 h-3 shrink-0 text-primary/70" />
-                      <span>Radius:</span>
-                      <span className="font-mono font-semibold text-foreground">{item.borderRadius ?? 24}px</span>
+                    <div className="shrink-0 text-center">
+                      <span className="text-[#A1A1AA]">Radius:</span>{" "}
+                      <span className="font-semibold text-[#FAFAFA]">{item.borderRadius ?? 24}px</span>
                     </div>
-
-                    <div className="flex items-center gap-1 text-muted-foreground truncate">
-                      <Sliders className="w-3 h-3 shrink-0 text-primary/70" />
-                      <span>Blur:</span>
-                      <span className="font-mono font-semibold text-foreground">{item.blurAmount ?? 10}px</span>
+                    <div className="shrink-0 text-center">
+                      <span className="text-[#A1A1AA]">Blur:</span>{" "}
+                      <span className="font-semibold text-[#FAFAFA]">{item.blurAmount ?? 0}px</span>
                     </div>
-
-                    <div className="flex items-center gap-1 text-muted-foreground truncate">
-                      <Tag className="w-3 h-3 shrink-0 text-primary/70" />
-                      <span>Bg:</span>
-                      <span className="font-semibold text-foreground uppercase truncate">
-                        {item.bgType || "gradient"}
-                      </span>
+                    <div className="shrink-0 text-right uppercase">
+                      <span className="text-[#A1A1AA]">Bg:</span>{" "}
+                      <span className="font-bold text-[#FAFAFA]">{item.bgType || "CUSTOM"}</span>
                     </div>
                   </div>
 
-                  {/* Card Actions Bar */}
-                  <div className="flex items-center justify-between gap-1.5 pt-1">
-                    <div className="flex items-center gap-1.5">
-                      <Button
-                        onClick={() => handleApply(item)}
-                        variant={isActive ? "secondary" : "default"}
-                        size="xs"
-                        className={`h-7 px-3 text-xs font-bold gap-1 cursor-pointer active:scale-[0.97] transition-all ${
-                          isActive
-                            ? "bg-primary/10 text-primary border border-primary/30"
-                            : "bg-primary hover:bg-primary/90 text-primary-foreground"
-                        }`}
-                      >
-                        {isActive ? (
-                          <>
-                            <Check className="w-3.5 h-3.5" /> Applied
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-3 h-3 fill-current" /> Apply
-                          </>
-                        )}
-                      </Button>
-
-                      <Button
-                        variant="outline"
-                        size="xs"
-                        onClick={() => {
-                          playClick();
-                          setPreviewTemplate(item);
-                        }}
-                        className="h-7 px-2 text-xs font-semibold gap-1 border-border/80 hover:bg-primary/10 hover:text-primary cursor-pointer active:scale-[0.97]"
-                        title="Open Live Preview Modal"
-                      >
-                        <Eye className="w-3.5 h-3.5 text-primary" />
-                        <span className="hidden sm:inline">Preview</span>
-                      </Button>
-                    </div>
-
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="outline"
-                        size="xs"
-                        onClick={() => {
-                          playClick();
-                          setEditingTemplate(item);
-                        }}
-                        className="h-7 px-2 text-[11px] gap-1 font-semibold hover:bg-muted cursor-pointer active:scale-[0.97]"
-                        title="Edit Template Properties"
-                      >
-                        <Edit2 className="w-3 h-3 text-muted-foreground" /> Edit
-                      </Button>
-
-                      {!item.isDefault && (
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={() => handleDelete(item.id)}
-                          className="size-7 text-muted-foreground hover:text-destructive cursor-pointer active:scale-[0.97]"
-                          title="Delete Template"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
+                  {/* Action Buttons Row (Screenshot Spec) */}
+                  <div className="flex items-center h-[42px] gap-2 pt-1 w-full">
+                    <button
+                      type="button"
+                      onClick={() => handleApply(item)}
+                      className={`flex-1 h-[33px] rounded-xl border border-transparent font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs active:scale-[0.98] ${
+                        isActive
+                          ? "bg-foreground text-background hover:bg-foreground/90"
+                          : "bg-foreground text-background hover:bg-foreground/90"
+                      }`}
+                    >
+                      {isActive ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          <span>Applied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                          <span>Apply</span>
+                        </>
                       )}
-                    </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playClick();
+                        setPreviewTemplate(item);
+                      }}
+                      className="h-full px-3.5 rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-foreground dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-muted dark:hover:bg-[#18181B] hover:border-border dark:hover:border-[#3F3F46] cursor-pointer transition-all active:scale-[0.98] shrink-0"
+                      title="Preview Template"
+                    >
+                      <Eye className="w-4 h-4 text-foreground dark:text-white" />
+                      <span>Preview</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playClick();
+                        setEditingTemplate(item);
+                      }}
+                      className="h-full aspect-square rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-foreground dark:text-white flex items-center justify-center hover:bg-muted dark:hover:bg-[#18181B] hover:border-border dark:hover:border-[#3F3F46] cursor-pointer transition-all active:scale-[0.98] shrink-0"
+                      title="Edit Template Properties"
+                    >
+                      <SquarePen className="w-4 h-4 text-foreground dark:text-white" />
+                    </button>
+
+                    {!item.isDefault && (
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(item.id)}
+                        className="h-full aspect-square rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-muted-foreground dark:text-[#A1A1AA] hover:text-red-500 flex items-center justify-center hover:bg-muted dark:hover:bg-[#18181B] hover:border-red-500/40 cursor-pointer transition-all active:scale-[0.98] shrink-0"
+                        title="Delete Template"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </FramePanel>
               </Frame>

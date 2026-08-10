@@ -218,102 +218,110 @@ export function OutputsGridView({
 
               </div>
 
-              {/* Status Radio Pills */}
-              <div className="flex flex-col gap-2 pt-2 border-t border-border/50">
-                <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/40">
+              {/* Status Switcher & Action Buttons (Screenshot Spec) */}
+              <div className="flex flex-col gap-2.5 pt-2 border-t border-border dark:border-[#27272A] w-full">
+                {/* Status Switcher Pill Bar */}
+                <div className="flex items-center h-9 p-0.5 bg-muted/60 dark:bg-[#09090B] border border-border dark:border-[#27272A] rounded-xl w-full justify-between gap-0.5">
                   <button
+                    type="button"
                     onClick={() => onUpdateStatus(item.folderName, "not_posted")}
-                    className={`flex-1 text-[10px] font-semibold py-1 rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                    className={`flex-1 h-full text-xs font-bold rounded-[6px] transition-all flex items-center justify-center cursor-pointer ${
                       item.status === "not_posted"
-                        ? "bg-background text-foreground shadow-xs border border-border/60"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "bg-[#F59E0B] text-black font-extrabold shadow-xs"
+                        : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white"
                     }`}
                   >
-                    <Circle className="w-2.5 h-2.5" /> Not Posted
+                    Not Posted
                   </button>
 
                   <button
+                    type="button"
                     onClick={() => onUpdateStatus(item.folderName, "posted")}
-                    className={`flex-1 text-[10px] font-semibold py-1 rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                    className={`flex-1 h-full text-xs font-bold rounded-[6px] transition-all flex items-center justify-center cursor-pointer ${
                       item.status === "posted"
-                        ? "bg-emerald-600 text-white shadow-xs"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "bg-[#10B981] text-black font-extrabold shadow-xs"
+                        : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white"
                     }`}
                   >
-                    <CheckCircle2 className="w-2.5 h-2.5" /> Posted
+                    Posted
                   </button>
 
                   <button
+                    type="button"
                     onClick={() => {
                       const today = new Date().toISOString().split("T")[0];
                       onUpdateStatus(item.folderName, "scheduled", item.scheduledDate || today);
                     }}
-                    className={`flex-1 text-[10px] font-semibold py-1 rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                    className={`flex-1 h-full text-xs font-bold rounded-[6px] transition-all flex items-center justify-center cursor-pointer ${
                       item.status === "scheduled"
-                        ? "bg-blue-600 text-white shadow-xs"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "bg-[#3B82F6] text-white font-extrabold shadow-xs"
+                        : "text-muted-foreground dark:text-[#A1A1AA] hover:text-foreground dark:hover:text-white"
                     }`}
                   >
-                    <Clock className="w-2.5 h-2.5" /> Scheduled
+                    Scheduled
                   </button>
                 </div>
 
-                {/* Bottom Card Actions */}
-                <div className="flex items-center justify-between gap-1.5 pt-1 flex-wrap">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <Button
-                      variant="outline"
-                      size="xs"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        window.location.href = `/api/outputs/download?folder=${encodeURIComponent(item.folderName)}`;
-                      }}
-                      className="h-6 px-2 text-[10px] bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 border-emerald-500/30 gap-1 font-semibold cursor-pointer active:scale-[0.97] transition-all"
-                      title="Download all slides as ZIP archive"
-                    >
-                      <Download className="w-3 h-3 text-emerald-400" /> Download ZIP
-                    </Button>
+                {/* Action Buttons Row */}
+                <div className="flex items-center h-[42px] gap-2 w-full">
+                  {/* Download ZIP */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.location.href = `/api/outputs/download?folder=${encodeURIComponent(item.folderName)}`;
+                    }}
+                    className={`flex-1 h-full rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] hover:bg-muted dark:hover:bg-[#18181B] hover:border-border dark:hover:border-[#3F3F46] font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-[0.98] ${
+                      item.status === "posted"
+                        ? "text-[#10B981]"
+                        : item.status === "scheduled"
+                        ? "text-[#3B82F6]"
+                        : "text-[#F59E0B]"
+                    }`}
+                    title="Download ZIP"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download ZIP</span>
+                  </button>
 
-                    <Button
-                      variant="outline"
-                      size="xs"
-                      onClick={() => handleOpenFolder(item.folderName)}
-                      className="h-6 px-2 text-[10px] text-foreground hover:bg-primary/10 hover:text-primary border-border/60 gap-1 font-semibold cursor-pointer active:scale-[0.97] transition-all"
-                      title="Open Native Windows Explorer Folder"
-                    >
-                      <FolderOpen className="w-3 h-3 text-primary" /> Folder
-                    </Button>
-                  </div>
+                  {/* Open Folder */}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenFolder(item.folderName)}
+                    className="h-full px-3.5 rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-foreground dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-muted dark:hover:bg-[#18181B] hover:border-border dark:hover:border-[#3F3F46] cursor-pointer transition-all active:scale-[0.98] shrink-0"
+                    title="Open Folder"
+                  >
+                    <Folder className="w-4 h-4 text-foreground dark:text-white" />
+                    <span>Folder</span>
+                  </button>
 
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon-xs"
-                      onClick={() => {
-                        navigator.clipboard.writeText(item.folderPath);
-                        setCopiedFolder(item.folderName);
-                        setTimeout(() => setCopiedFolder(null), 2000);
-                      }}
-                      className="size-6 text-muted-foreground hover:text-foreground cursor-pointer active:scale-[0.97]"
-                      title="Copy Folder Path"
-                    >
-                      {copiedFolder === item.folderName ? (
-                        <Check className="w-3 h-3 text-emerald-400" />
-                      ) : (
-                        <Copy className="w-3 h-3" />
-                      )}
-                    </Button>
+                  {/* Copy Path */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(item.folderPath);
+                      setCopiedFolder(item.folderName);
+                      setTimeout(() => setCopiedFolder(null), 2000);
+                    }}
+                    className="h-full aspect-square rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-foreground dark:text-white flex items-center justify-center hover:bg-muted dark:hover:bg-[#18181B] hover:border-border dark:hover:border-[#3F3F46] cursor-pointer transition-all active:scale-[0.98] shrink-0"
+                    title="Copy Folder Path"
+                  >
+                    {copiedFolder === item.folderName ? (
+                      <Check className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <Copy className="w-4 h-4 text-foreground dark:text-white" />
+                    )}
+                  </button>
 
-                    <Button
-                      variant="ghost"
-                      size="icon-xs"
-                      onClick={() => onDelete(item.folderName)}
-                      className="size-6 text-muted-foreground hover:text-destructive cursor-pointer active:scale-[0.97]"
-                      title="Delete Folder"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+                  {/* Delete Folder */}
+                  <button
+                    type="button"
+                    onClick={() => onDelete(item.folderName)}
+                    className="h-full aspect-square rounded-xl bg-background dark:bg-[#09090B] border border-border dark:border-[#27272A] text-foreground dark:text-white flex items-center justify-center hover:bg-muted dark:hover:bg-[#18181B] hover:border-red-500/40 hover:text-red-500 cursor-pointer transition-all active:scale-[0.98] shrink-0"
+                    title="Delete Folder"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </CardContent>

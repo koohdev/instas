@@ -79,28 +79,20 @@ export function AppSidebar({
               <span>Design Templates</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              isActive={activeTab === "backgrounds"}
-              onClick={() => setActiveTab("backgrounds")}
-              render={<button />}
-            >
-              <ImageIcon />
-              <span>Custom Backgrounds</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              isActive={activeTab === "fonts"}
-              onClick={() => setActiveTab("fonts")}
-              render={<button />}
-            >
-              <Type />
-              <span>Custom Fonts</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
 
+        {/* Asset Pipeline Section (Screenshot 2 Spec) */}
+        <NavDocuments
+          groupLabel="Asset Pipeline"
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          items={[
+            { id: "backgrounds", name: "Custom Backgrounds", url: "#", icon: <ImageIcon /> },
+            { id: "fonts", name: "Custom Fonts", url: "#", icon: <Type /> }
+          ]}
+        />
+
+        {/* Archive Section */}
         <NavDocuments
           groupLabel="Archive"
           activeTab={activeTab}

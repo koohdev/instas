@@ -554,7 +554,7 @@ export function UrlLibraryTab() {
                     </div>
 
                     {/* URL Link snippet */}
-                    <p className="text-[11px] font-mono text-muted-foreground truncate bg-muted/30 px-2 py-1 rounded border border-border/40">
+                    <p className="text-[11px] font-mono text-muted-foreground truncate bg-background px-2 py-1 rounded border border-border/40">
                       {item.url}
                     </p>
 

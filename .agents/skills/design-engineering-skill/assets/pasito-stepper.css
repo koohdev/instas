@@ -1,0 +1,25 @@
+/* pasito-stepper.css */
+/* Injects custom properties for Josh Puckett's fluid stepper component */
+
+.pasito-stepper {
+  /* Dimensions & Spacing */
+  --pill-dot-size: 8px;
+  --pill-active-width: 24px;
+  --pill-gap: 6px;
+  --pill-container-radius: 999px;
+
+  /* Monochromatic Color Layering */
+  --pill-bg: rgba(255, 255, 255, 0.12);        /* Inactive Dot */
+  --pill-active-bg: rgba(255, 255, 255, 0.8); /* Active Target */
+  --pill-fill-bg: rgba(255, 255, 255, 0.45);   /* Autoplay Fill Bar */
+  --pill-container-bg: rgba(255, 255, 255, 0.04);
+  --pill-container-border: rgba(255, 255, 255, 0.06);
+}
+
+/* Accessibility: instantly resolve layout transitions if OS reduced-motion is active */
+@media (prefers-reduced-motion: reduce) {
+  .pasito-stepper * {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
